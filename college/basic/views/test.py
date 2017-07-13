@@ -8,6 +8,7 @@ import json
 from django.http import HttpResponse
 
 from basic.views import Table
+from basic.utils.logger import logger
 
 
 def test1(request):
@@ -59,5 +60,6 @@ def test(request):
         result = Table.add_table(tables, fields)
     except Exception as e:
         print(e)
+        logger.info(str(e))
     finally:
         return HttpResponse(json.dumps(result))

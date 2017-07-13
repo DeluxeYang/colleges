@@ -117,3 +117,60 @@ LOGIN_URL = '/login/'
 BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_TIMEZONE = TIME_ZONE
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'json': {
+            'format': '{"level": "%(levelname)s", "time": "%(asctime)s", '
+                      '"function": "%(module)s:%(funcName)s", "line_number": "%(lineno)d", '
+                      '"message": "%(message)s"}'
+        },
+        'standard': {
+            'format': '%(asctime)s [%(module)s:%(funcName)s][%(lineno)d]'
+                      '[%(levelname)s]- %(message)s'}
+    },
+    'filters': {
+    },
+    'handlers': {
+        'default': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'log/all.log',     # 日志输出文件
+            'maxBytes': 1024 * 1024 * 5,                  # 文件大小
+            'backupCount': 5,                         # 备份份数
+            'formatter': 'standard',                   # 使用哪种formatters日志格式
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
+        'request_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'log/request.log',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
+            'formatter': 'standard'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['default', 'console'],
+            'level': 'INFO',
+            'propagate': False
+        },
+        'django.request': {
+            'handlers': ['request_handler'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+        'college': {
+            'handlers': ['default', 'console'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    }
+}

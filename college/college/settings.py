@@ -140,12 +140,12 @@ LOGGING = {
             'filename': 'log/all.log',     # 日志输出文件
             'maxBytes': 1024 * 1024 * 5,                  # 文件大小
             'backupCount': 5,                         # 备份份数
-            'formatter': 'standard',                   # 使用哪种formatters日志格式
+            'formatter': 'json',                   # 使用哪种formatters日志格式
         },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'standard'
+            'formatter': 'json'
         },
         'request_handler': {
             'level': 'DEBUG',
@@ -153,7 +153,7 @@ LOGGING = {
             'filename': 'log/request.log',
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 5,
-            'formatter': 'standard'
+            'formatter': 'json'
         }
     },
     'loggers': {

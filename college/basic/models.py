@@ -1,23 +1,35 @@
 from django.db import models
 
 
-class Tables(models.Model):
+class TypeOfTable(models.Model):
+    name_cn = models.CharField(max_length=30, unique=True)
+    type = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = 'type_of_table'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return self.name
+
+
+class Table(models.Model):
+    type = models.ForeignKey(TypeOfTable, related_name='Table')
     table_name = models.CharField(max_length=30, unique=True)
     table_name_cn = models.CharField(max_length=255, unique=True)
     create_time = models.DateField(null=True, blank=True)
 
     class Meta:
-        db_table = 'tables'
+        db_table = 'table'
 
     def __str__(self):  # __unicode__ on Python 2
         return self.table_name_cn
 
 
 class DateOfTable(models.Model):
-    table = models.ForeignKey(Tables, related_name='DateOfTable')
+    table = mode   ls.ForeignKey(Table, related_name='DateOfTable')
     year = models.IntegerField()
-    month = models.IntegerField()
-    create_time = models.DateField(null=True, blank=True)
+    month = models.IntegerField(null=True, blank=True)
+    type = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'date_of_table'
@@ -26,24 +38,24 @@ class DateOfTable(models.Model):
         return str(self.table) + " - " + str(self.year) + " " + str(self.month)
 
 
-class Types(models.Model):
+class TypeOfField(models.Model):
     field_type = models.CharField(max_length=30)
 
     class Meta:
-        db_table = 'types'
+        db_table = 'type_of_field'
 
     def __str__(self):  # __unicode__ on Python 2
         return self.field_type
 
 
-class Fields(models.Model):
-    table = models.ForeignKey(Tables, related_name='Fields')
-    field_type = models.ForeignKey(Types, related_name='Fields')
+class Field(models.Model):
+    table = models.ForeignKey(Table, related_name='Fields')
+    field_type = models.ForeignKey(TypeOfField, related_name='Fields')
     field_name = models.CharField(max_length=30)
     field_name_cn = models.CharField(max_length=255)
 
     class Meta:
-        db_table = 'fields'
+        db_table = 'field'
 
     def __str__(self):  # __unicode__ on Python 2
             return str(self.table) + " - " + str(self.field_name_cn)

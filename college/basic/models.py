@@ -25,17 +25,28 @@ class Table(models.Model):
         return self.table_name_cn
 
 
-class DateOfTable(models.Model):
-    table = mode   ls.ForeignKey(Table, related_name='DateOfTable')
-    year = models.IntegerField()
+class YearAndMonth(models.Model):
+    year = models.IntegerField(null=True, blank=True)
     month = models.IntegerField(null=True, blank=True)
     type = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = 'year_and_month'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return str(self.year) + " " + str(self.month)
+
+
+class DateOfTable(models.Model):
+    table = models.ForeignKey(Table, related_name='DateOfTable')
+    date = models.ForeignKey(YearAndMonth, related_name='DateOfTable')
+    name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'date_of_table'
 
     def __str__(self):  # __unicode__ on Python 2
-        return str(self.table) + " - " + str(self.year) + " " + str(self.month)
+        return str(self.table) + " - " + str(self.date)
 
 
 class TypeOfField(models.Model):

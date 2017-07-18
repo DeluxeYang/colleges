@@ -11,7 +11,7 @@ from django.db import IntegrityError
 
 from college.settings import es_address
 from basic.utils.logger import logger
-from basic.models import Tables, Types, DateOfTable, Fields
+from basic.models import *
 
 es = Elasticsearch(es_address)
 
@@ -21,7 +21,7 @@ def get_all_tables():
     返回所有表信息
     :return:
     """
-    return Tables.objects.all()
+    return Table.objects.all()
 
 
 def get_all_fields_of_one_table(table_id):
@@ -30,7 +30,7 @@ def get_all_fields_of_one_table(table_id):
     :param table_id:
     :return:
     """
-    return Fields.objects.filter(table_id=table_id)
+    return Field.objects.filter(table_id=table_id)
 
 
 def add_table(table, fields):
@@ -53,17 +53,16 @@ CREATE TABLE `mapping_session` (
 ) ENGINE=MyISAM AUTO_INCREMENT=392 DEFAULT CHARSET=latin1;
     """
     try:
-        table = Tables.objects.create(
+        table = Table.objects.create(
             table_name=table["table_name"],
             table_name_cn=table["table_name_cn"],
             create_time=datetime.datetime.now())
         for field in fields:
-            Fields.objects.create(
+            Field.objects.create(
                 field_name=field["field_name"],
                 field_name_cn=field["field_name_cn"],
                 field_type_id=int(field["field_type"]),
                 table=table)
     except IntegrityError as e:
-        # print(e)
         logger.info(str(e))
     return "success"

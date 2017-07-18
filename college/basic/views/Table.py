@@ -5,15 +5,12 @@
 """
 import datetime
 
-from elasticsearch import Elasticsearch
+# from elasticsearch import Elasticsearch
 
 from django.db import IntegrityError
 
-from college.settings import es_address
 from basic.utils.logger import logger
 from basic.models import *
-
-es = Elasticsearch(es_address)
 
 
 def get_all_tables():
@@ -24,7 +21,7 @@ def get_all_tables():
     return Table.objects.all()
 
 
-def get_all_fields_of_one_table(table_id):
+def get_all_fields_by_table_id(table_id):
     """
     返回一个表所有字段
     :param table_id:
@@ -39,18 +36,17 @@ def add_table(table, fields):
     :param table: {table_name,table_name_cn}
     :param fields: [{field_name,field_name_cn,field_type}
     :return:
-
-CREATE TABLE `mapping_session` (
-  `mapping_session_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `old_db_name` varchar(80) NOT NULL DEFAULT '',
-  `new_db_name` varchar(80) NOT NULL DEFAULT '',
-  `old_release` varchar(5) NOT NULL DEFAULT '',
-  `new_release` varchar(5) NOT NULL DEFAULT '',
-  `old_assembly` varchar(20) NOT NULL DEFAULT '',
-  `new_assembly` varchar(20) NOT NULL DEFAULT '',
-  `created` datetime NOT NULL,
-  PRIMARY KEY (`mapping_session_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=392 DEFAULT CHARSET=latin1;
+    CREATE TABLE `mapping_session` (
+      `mapping_session_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+      `old_db_name` varchar(80) NOT NULL DEFAULT '',
+      `new_db_name` varchar(80) NOT NULL DEFAULT '',
+      `old_release` varchar(5) NOT NULL DEFAULT '',
+      `new_release` varchar(5) NOT NULL DEFAULT '',
+      `old_assembly` varchar(20) NOT NULL DEFAULT '',
+      `new_assembly` varchar(20) NOT NULL DEFAULT '',
+      `created` datetime NOT NULL,
+      PRIMARY KEY (`mapping_session_id`)
+    ) ENGINE=MyISAM AUTO_INCREMENT=392 DEFAULT CHARSET=latin1;
     """
     try:
         table = Table.objects.create(

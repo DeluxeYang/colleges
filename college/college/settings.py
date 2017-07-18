@@ -145,7 +145,7 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'json'
+            'formatter': 'standard'
         },
         'request_handler': {
             'level': 'DEBUG',
@@ -153,7 +153,7 @@ LOGGING = {
             'filename': 'log/request.log',
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 5,
-            'formatter': 'json'
+            'formatter': 'standard'
         }
     },
     'loggers': {

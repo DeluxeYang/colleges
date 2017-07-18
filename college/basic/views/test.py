@@ -32,7 +32,7 @@ def test1(request):
 def test2(request):
     return_list = []
     try:
-        tables = Table.get_all_fields_of_one_table(1)
+        tables = Table.get_fields_by_table_name(1)
         for t in tables:
             temp_dict = {
                 "field_id": t.id,
@@ -49,17 +49,13 @@ def test2(request):
 
 def test(request):
     result = []
-    try:
-        tables = {
-            "table_name": "test",
-            "table_name_cn": "啊"
-        }
-        fields = [{"field_name": "test",
-                   "field_name_cn": "啊啊",
-                   "field_type": 2}]
-        result = Table.add_table(tables, fields)
-    except Exception as e:
-        print(e)
-        logger.info(str(e))
-    finally:
-        return HttpResponse(json.dumps(result))
+    tables = {
+        "table_name": "test",
+        "table_name_cn": "啊",
+        "table_type": 1
+    }
+    fields = [{"field_name": "test",
+               "field_name_cn": "啊啊",
+               "field_type": 1}]
+    result = Table.add_table(tables, fields)
+    return HttpResponse(json.dumps(result))

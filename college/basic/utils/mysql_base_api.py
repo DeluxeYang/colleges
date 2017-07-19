@@ -182,14 +182,12 @@ def drop_tables(cursor, tables_list):
     if len(tables_list) == 0:               # none table to drop
         logger.error("None table to drop.")
         return -1
-
     try:
         for table in tables_list:           # fetch one table a time
             cursor.execute("DROP TABLE %s" % table)
             logger.debug("SQL Result: %s", cursor.fetchone())
     except pymysql.Error as e:
         logger.error("Error %d: %s" % (e.args[0], e.args[1]))
-
     return 1
 
 

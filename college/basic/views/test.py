@@ -47,7 +47,7 @@ def test2(request):
         return HttpResponse(json.dumps(return_list))
 
 
-def test(request):
+def test3(request):
     result = []
     tables = {
         "table_name": "test",
@@ -57,5 +57,10 @@ def test(request):
     fields = [{"field_name": "test",
                "field_name_cn": "啊啊",
                "field_type": 1}]
-    result = Table.add_table(tables, fields)
+    result = Table.create_table(tables, fields)
+    return HttpResponse(json.dumps(result))
+
+
+def test(request):
+    result = Table.drop_table("test")
     return HttpResponse(json.dumps(result))

@@ -23,7 +23,7 @@ def get_all_table_types():
     return TypeOfTable.objects.all()
 
 
-def get_table_types_by_id(_id):
+def get_table_type_by_id(_id):
     """
     按【ID】获取【表类型】
     :return:
@@ -31,7 +31,7 @@ def get_table_types_by_id(_id):
     return TypeOfTable.objects.get(id=_id)
 
 
-def get_table_types_by_name(name_cn):
+def get_table_type_by_name(name_cn):
     """
     按【名称】获取【表类型】
     :return:
@@ -45,7 +45,13 @@ def get_table_type_by_id_or_name(param):
     :param param:
     :return:
     """
-    return TypeOfTable.objects.get(Q(id=param) | Q(name_cn=param))
+    if isinstance(param, int):
+        table_type = get_table_type_by_id(param)
+    elif isinstance(param, str):
+        table_type = get_table_type_by_name(param)
+    else:
+        raise TypeError("Not a id or name")
+    return table_type
 
 
 def get_all_tables():
@@ -54,6 +60,39 @@ def get_all_tables():
     :return:
     """
     return Table.objects.all()
+
+
+def get_table_by_id(_id):
+    """
+
+    :param _id:
+    :return:
+    """
+    return Table.objects.get(id=_id)
+
+
+def get_table_by_name(_name):
+    """
+
+    :param _name:
+    :return:
+    """
+    return Table.objects.get(Q(name=_name) | Q(name_cn=_name))
+
+
+def get_table_by_id_or_name(param):
+    """
+
+    :param param:
+    :return:
+    """
+    if isinstance(param, int):
+        table = get_table_by_id(param)
+    elif isinstance(param, str):
+        table = get_table_by_name(param)
+    else:
+        raise TypeError("Not a id or name")
+    return table
 
 
 def get_tables_by_type_id(type_id):
@@ -74,13 +113,13 @@ def get_tables_by_type_name(name):
     return Table.objects.filter(type=type_of_table)
 
 
-def get_fields_by_table_name(table_name):
+def get_fields_by_table_name(_name):
     """
     按【表名】返回一个【表】所有【字段】
-    :param table_name:
+    :param _name:
     :return:
     """
-    table = Table.objects.get(Q(name=table_name) | Q(name_cn=table_name))
+    table = get_table_by_name(_name)
     return Field.objects.filter(table=table)
 
 
@@ -122,7 +161,13 @@ def get_field_type_by_name_or_id(param):
     按【名称】返回所有【字段类型】
     :return:
     """
-    return TypeOfField.objects.get(Q(id=param) | Q(name=param))
+    if isinstance(param, int):
+        field_type = get_field_type_by_id(param)
+    elif isinstance(param, str):
+        field_type = get_field_type_by_name(param)
+    else:
+        raise TypeError("Not a id or name")
+    return field_type
 
 
 def get_field_types_size():
@@ -144,6 +189,7 @@ def add_table(table, fields):
     :param fields: [{field_name,field_name_cn,field_type}
     :return:
     """
+    result = False
     try:
         _table = Table.objects.create(  # 先建立表
             name=table["table_name"],
@@ -162,11 +208,40 @@ def add_table(table, fields):
             sql += "(%s)," % _type.size if _type.size else ","  # 如果没有size，则没有括号
         sql += "PRIMARY KEY (id));"  # SQL尾
         logger.info(sql)  # 输出SQL
-        db = mysql_base_api.MYSQL_CONFIG
-        conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], db['PORT'])
-        result = mysql_base_api.sql_execute(conn, cursor, sql, "")
-        mysql_base_api.sql_close(conn, cursor)
-        logger.info(result)
-    except IntegrityError as e:
-        logger.info(str(e))
-    return "success"
+        db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+        conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+        res = mysql_base_api.sql_execute(conn, cursor, sql, None)  # 执行SQL语句
+        mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+        if res != ():
+            raise Exception(res)
+        result = True
+    except IntegrityError as e:  # 仅处理重复添加错误
+        logger.error(str(e))
+    finally:
+        return result
+
+
+def drop_table(table):
+    """
+    删除表及表的字段
+    :param table: table_name or table_name_cn or table_type
+    :return:
+    """
+    result = False
+    try:
+        _table = get_table_by_id_or_name(table)
+        try:
+            tables_list = [_table.name]
+            db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+            conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+            mysql_base_api.drop_tables(cursor, tables_list)
+            mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+        except Exception as e:
+            logger.error(str(e))
+        get_fields_by_table_id(_table.id).delete()
+        _table.delete()
+        result = True
+    except Exception as e:  # 仅处理重复添加错误
+        logger.error(str(e))
+    finally:
+        return result

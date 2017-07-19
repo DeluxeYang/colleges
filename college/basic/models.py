@@ -61,7 +61,7 @@ class BatchOfTable(models.Model):  # 具体到批次的表名
 
 
 class TypeOfField(models.Model):  # 字段类型
-    name = models.CharField(max_length=30)  # 名称
+    name = models.CharField(max_length=30, unique=True)  # 名称
     size = models.IntegerField(null=True, blank=True)
 
     class Meta:

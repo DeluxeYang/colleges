@@ -8,6 +8,9 @@ import django
 import sys
 
 from basic.utils.logger import logger
+from college.settings import DATABASES
+
+MYSQL_CONFIG = DATABASES["default"]
 
 
 def sql_init(db_host, db_user, db_passwd, db_name, db_port=3306):

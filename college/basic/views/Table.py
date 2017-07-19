@@ -11,6 +11,7 @@ from django.db import IntegrityError
 from django.db.models import Q
 
 from basic.utils.logger import logger
+from basic.utils import mysql_base_api
 from basic.models import *
 
 
@@ -161,6 +162,11 @@ def add_table(table, fields):
             sql += "(%s)," % _type.size if _type.size else ","  # 如果没有size，则没有括号
         sql += "PRIMARY KEY (id));"  # SQL尾
         logger.info(sql)  # 输出SQL
+        db = mysql_base_api.MYSQL_CONFIG
+        conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], db['PORT'])
+        result = mysql_base_api.sql_execute(conn, cursor, sql, "")
+        mysql_base_api.sql_close(conn, cursor)
+        logger.info(result)
     except IntegrityError as e:
         logger.info(str(e))
     return "success"

@@ -3,10 +3,6 @@
 """
 
 """
-import datetime
-
-# from elasticsearch import Elasticsearch
-
 from django.db import IntegrityError
 from django.db.models import Q
 
@@ -182,9 +178,9 @@ def get_field_types_size():
     return field_types_size
 
 
-def add_table(table, fields):
+def create_table(table, fields):
     """
-    添加表及表的字段
+    添加【表】及【表的字段】
     :param table: {table_name,table_name_cn,table_type}
     :param fields: [{field_name,field_name_cn,field_type}
     :return:
@@ -196,7 +192,7 @@ def add_table(table, fields):
             name_cn=table["table_name_cn"],
             type=get_table_type_by_id_or_name(table["table_type"]))  # 表类型的数据可以为名称也可以为ID，外键：TypeOfTable
         sql = "CREATE TABLE " + table["table_name"] + "(" \
-              + "id int(10) unsigned NOT NULL AUTO_INCREMENT,"  # SQL头
+              + "id int(10) unsigned NOT NULL AUTO_INCREMENT,"
         for field in fields:
             _type = get_field_type_by_name_or_id(field["field_type"])  # 字段类型数据可以为名称也可以为ID
             Field.objects.create(
@@ -223,7 +219,7 @@ def add_table(table, fields):
 
 def drop_table(table):
     """
-    删除表及表的字段
+    删除【表】及【表的字段】
     :param table: table_name or table_name_cn or table_type
     :return:
     """

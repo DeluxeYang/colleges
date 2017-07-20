@@ -113,6 +113,9 @@ STATIC_ROOT = (os.path.join(os.path.dirname(__file__), '../static').replace('\\'
 
 LOGIN_URL = '/login/'
 
+MEDIA_ROOT = 'upload/'
+
+MEDIA_URL = '/upload/'
 # celery
 BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_TIMEZONE = TIME_ZONE

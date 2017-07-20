@@ -35,12 +35,13 @@ class YearSeasonMonth(models.Model):
     season = models.IntegerField(null=True, blank=True)  # 季度
     month = models.IntegerField(null=True, blank=True)  # 月
     type = models.IntegerField(default=0)  # 类型：1年2季度3月
+    text = models.CharField(max_length=30, null=True, blank=True)  # 文本
 
     class Meta:
         db_table = 'year_season_month'
 
     def __str__(self):  # __unicode__ on Python 2
-        return str(self.year) + " " + str(self.month)
+        return str(self.text)
 
 
 class BatchOfTable(models.Model):  # 具体到批次的表名
@@ -48,12 +49,13 @@ class BatchOfTable(models.Model):  # 具体到批次的表名
     batch = models.ForeignKey(YearSeasonMonth, related_name='BatchOfTable')  # 批次
     name_cn = models.CharField(max_length=255, null=True, blank=True)  # 名
     create_time = models.DateField(null=True, blank=True)  # 创建时间
+    excel_file = models.FileField(upload_to='data/excel', null=True, blank=True)
 
     class Meta:
         db_table = 'batch_of_table'
 
     def __str__(self):  # __unicode__ on Python 2
-        return str(self.table) + " - " + str(self.batch)
+        return str(self.table) + "_" + str(self.batch)
 
     def save(self, *args, **kwargs):
         self.create_time = datetime.datetime.now().date()

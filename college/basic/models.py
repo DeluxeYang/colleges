@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class TypeOfTable(models.Model):  # 表类型：榜单 人才
@@ -137,3 +138,62 @@ class College(models.Model):
 
     def __str__(self):  # __unicode__ on Python 2
         return self.name_cn
+
+
+class NewsTag(models.Model):
+    title = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'news_tag'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return self.title
+
+
+class NewsAndTag(models.Model):
+    news = models.ForeignKey(News, related_name='news_and_tag')
+    tag = models.ForeignKey(NewsTag, related_name='news_and_tag')
+
+    class Meta:
+        db_table = 'news_and_tag'
+
+
+class News(models.Model):
+    user = models.ForeignKey(User, related_name='news')  # 发布用户
+    tag = models.ManyToManyField(NewsTag, through='NewsAndTag', related_name='news')  # 所属标签
+    title = models.CharField(max_length=500)  # 标题
+    keywords = models.CharField(max_length=100, null=True, blank=True)  # 关键字
+    description = models.TextField(null=True, blank=True)  # 描述
+    content = models.TextField(null=True, blank=True)  # 内容
+    is_published = models.BooleanField(default=False)  # 是否已发布
+    comment_count = models.IntegerField(null=True, blank=True)  # 评论数
+    is_allow_comments = models.BooleanField(default=False)  # 是否允许评论
+    create_time = models.DateTimeField(null=True, blank=True)  # 创建时间
+    update_time = models.DateTimeField(null=True, blank=True)  # 更新时间
+    publish_time = models.DateTimeField(null=True, blank=True)  # 发布时间
+
+    class Meta:
+        db_table = 'news'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return str(self.title)
+
+    def save(self, *args, **kwargs):
+        if self.create_time:
+            self.create_time = datetime.datetime.now()
+        else:
+            self.update_time = datetime.datetime.now()
+        super().save(*args, **kwargs)
+
+
+class NewsComment(models.Model):
+    user = models.ForeignKey(User, related_name='news_comment')  # 发布用户
+    news = models.ForeignKey(News, related_name='news_comment')  # 发布用户
+    content = models.TextField(null=True, blank=True)  # 内容
+    reply = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'news_comment'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return str(self.news) + " - " + str(self.content)[:10] + "..."

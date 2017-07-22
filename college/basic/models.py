@@ -150,24 +150,19 @@ class NewsTag(models.Model):
         return self.title
 
 
-class NewsAndTag(models.Model):
-    news = models.ForeignKey(News, related_name='news_and_tag')
-    tag = models.ForeignKey(NewsTag, related_name='news_and_tag')
-
-    class Meta:
-        db_table = 'news_and_tag'
-
-
 class News(models.Model):
     user = models.ForeignKey(User, related_name='news')  # 发布用户
+    college = models.ForeignKey(College, related_name='news')  # 新闻所属学校
     tag = models.ManyToManyField(NewsTag, through='NewsAndTag', related_name='news')  # 所属标签
-    title = models.CharField(max_length=500)  # 标题
+    title = models.CharField(max_length=500, unique=True)  # 标题
     keywords = models.CharField(max_length=100, null=True, blank=True)  # 关键字
     description = models.TextField(null=True, blank=True)  # 描述
     content = models.TextField(null=True, blank=True)  # 内容
     is_published = models.BooleanField(default=False)  # 是否已发布
     comment_count = models.IntegerField(null=True, blank=True)  # 评论数
     is_allow_comments = models.BooleanField(default=False)  # 是否允许评论
+    is_stick_top = models.BooleanField(default=False)  # 是否置顶
+    is_bold = models.BooleanField(default=False)  # 是否加粗
     create_time = models.DateTimeField(null=True, blank=True)  # 创建时间
     update_time = models.DateTimeField(null=True, blank=True)  # 更新时间
     publish_time = models.DateTimeField(null=True, blank=True)  # 发布时间
@@ -184,6 +179,14 @@ class News(models.Model):
         else:
             self.update_time = datetime.datetime.now()
         super().save(*args, **kwargs)
+
+
+class NewsAndTag(models.Model):
+    news = models.ForeignKey(News, related_name='news_and_tag')
+    tag = models.ForeignKey(NewsTag, related_name='news_and_tag')
+
+    class Meta:
+        db_table = 'news_and_tag'
 
 
 class NewsComment(models.Model):

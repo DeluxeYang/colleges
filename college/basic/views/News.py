@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from basic.utils.logger import logger
-from basic.models import News, NewsTag, NewsAndTag, NewsComment, College
+from basic.models import News, NewsTag, NewsAndTag, NewsComment
 from basic.views.College import *
 
 

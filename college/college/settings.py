@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'basic',
+    'backend',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -108,8 +109,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATICFILES_DIRS = (os.path.join(os.path.dirname(__file__), '../static').replace('\\', '/'))
-STATIC_ROOT = (os.path.join(os.path.dirname(__file__), '../static').replace('\\', '/'))
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')  # 收集admin的static时使用
+STATICFILES_DIRS = [  # Debug开发时的静态文件处理
+    os.path.join(BASE_DIR, 'static')
+]
 
 LOGIN_URL = '/login/'
 
@@ -118,7 +121,9 @@ MEDIA_ROOT = 'upload/'
 MEDIA_URL = '/upload/'
 # celery
 BROKER_URL = 'redis://127.0.0.1:6379/0'
+
 CELERY_TIMEZONE = TIME_ZONE
+
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 LOGGING = {

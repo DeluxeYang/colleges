@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import datetime
+
 from basic.utils.logger import logger
-from basic.models import News, NewsTag, NewsComment, College
+from basic.models import News, NewsTag, NewsAndTag, NewsComment, College
 from basic.views.College import *
 
 
@@ -122,3 +124,67 @@ def get_all_comments_of_one_news(news):
     news = get_news_by_id_or_title(news)
     comments = NewsComment.objects.filter(news=news)
     return comments
+
+
+def add_news(news, tags):
+    """
+
+    :param news:
+    :param tags:
+    :return:
+    """
+    _news = News.objects.create(
+        user=news["user"],
+        college=get_college_by_id_or_name(news["college"]),
+        title=news["title"],
+        keyword=news["keyword"],
+        description=news["description"],
+        content=news["content"],
+        is_published=news["is_published"],
+        is_allow_comments=news["is_allow_comments"],
+        is_stick_top=news["is_stick_top"],
+        is_bold=news["is_bold"],
+        publish_time=datetime.datetime.now() if news["is_published"] else None)
+    for tag in tags:
+        NewsAndTag.objects.create(news=_news,
+                                  tag=get_tag_by_id_or_title(tag))
+    return _news
+
+
+def update_news(news, tags):
+    """
+
+    :param news:
+    :param tags:
+    :return:
+    """
+    _news = get_news_by_id_or_title(news)
+    _news.update(
+        user=news["user"],
+        college=get_college_by_id_or_name(news["college"]),
+        title=news["title"],
+        keyword=news["keyword"],
+        description=news["description"],
+        content=news["content"],
+        is_published=news["is_published"],
+        is_allow_comments=news["is_allow_comments"],
+        is_stick_top=news["is_stick_top"],
+        is_bold=news["is_bold"],
+        publish_time=datetime.datetime.now() if news["is_published"] else None)
+    NewsAndTag.objects.filter(news=_news).delete()
+    for tag in tags:
+        NewsAndTag.objects.create(news=_news,
+                                  tag=get_tag_by_id_or_title(tag))
+    return _news
+
+
+def delete_news(news):
+    """
+
+    :param news:
+    :return:
+    """
+    _news = get_news_by_id_or_title(news)
+    NewsAndTag.objects.filter(news=_news).delete()
+    _news.delete()
+    return _news

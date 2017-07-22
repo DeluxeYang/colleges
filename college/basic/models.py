@@ -154,13 +154,13 @@ class News(models.Model):
     user = models.ForeignKey(User, related_name='news')  # 发布用户
     college = models.ForeignKey(College, related_name='news')  # 新闻所属学校
     tag = models.ManyToManyField(NewsTag, through='NewsAndTag', related_name='news')  # 所属标签
-    title = models.CharField(max_length=500, unique=True)  # 标题
+    title = models.CharField(max_length=255, unique=True)  # 标题
     keywords = models.CharField(max_length=100, null=True, blank=True)  # 关键字
     description = models.TextField(null=True, blank=True)  # 描述
     content = models.TextField(null=True, blank=True)  # 内容
     is_published = models.BooleanField(default=False)  # 是否已发布
-    comment_count = models.IntegerField(null=True, blank=True)  # 评论数
-    is_allow_comments = models.BooleanField(default=False)  # 是否允许评论
+    comment_count = models.IntegerField(default=0)  # 评论数
+    is_allow_comments = models.BooleanField(default=True)  # 是否允许评论
     is_stick_top = models.BooleanField(default=False)  # 是否置顶
     is_bold = models.BooleanField(default=False)  # 是否加粗
     create_time = models.DateTimeField(null=True, blank=True)  # 创建时间

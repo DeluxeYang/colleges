@@ -9,17 +9,18 @@
     <!-- Le styles -->
     <link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css">
     <link href="/static/css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/custom-styles.css" rel="stylesheet" />
     <style>
       html
       {
         height:100%;
         margin:0;
+
       }
       body {
         height:100%;
         margin:0;
-        padding-top: 65px; /* 60px to make the container go all the way to the bottom of the topbar */
-        padding-bottom: 15px; /* 60px to make the container go all the way to the bottom of the topbar */
+        padding-top: 50px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
       body{font-family:'Microsoft YaHei';}
     </style>
@@ -44,19 +45,22 @@
   <body>
         <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" role="navigation">
             <div class="navbar-header">
-               <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"> <span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button> <a class="navbar-brand" href="">后台管理</a>
+               <a class="navbar-brand" style="width: 260px;" href="">后台管理</a>
             </div>
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav">
+                <li id="li-0">
+                   <a href="/backend/news/" class="top-navbar-nav">新闻</a>
+                </li>
                 <li id="li-1">
-                   <a href="/backend/college/">院校</a>
+                   <a href="/backend/college/" class="top-navbar-nav">院校</a>
                 </li>
                 <li id="li-2">
-                   <a href="/backend/ranking/">榜单</a>
+                   <a href="/backend/ranking/" class="top-navbar-nav">榜单</a>
                 </li>
                 <li id="li-3">
-                   <a href="/backend/person/">人才</a>
+                   <a href="/backend/person/" class="top-navbar-nav">人才</a>
                 </li>
               </ul>
               <ul class="nav navbar-nav navbar-right">
@@ -66,16 +70,19 @@
                 <li class="dropdown">
                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">操作<strong class="caret"></strong></a>
                   <ul class="dropdown-menu">
-                    <li>
-                       <a href="/changepwd/">修改密码</a>
-                    </li>
-                    <li class="divider"></li>
-                    <li>
-                      <a href="/">进入前台</a>
-                    </li>
-                    <li>
-                       <a href="/logout/" onclick="return confirm('确认退出登录？')">退出登录</a>
-                    </li>
+                      <li>
+                        <a href="/admin/">进入admin</a>
+                      </li>
+                      <li>
+                        <a href="/">进入前台</a>
+                      </li>
+                      <li class="divider"></li>
+                      <li>
+                         <a href="/admin/password_change/">修改密码</a>
+                      </li>
+                      <li>
+                         <a href="/admin/logout/?next=/backend/" onclick="return confirm('确认退出登录？')">退出登录</a>
+                      </li>
                   </ul>
                 </li>
                 <li>
@@ -85,20 +92,36 @@
             </div>
         </nav>
 
-        <div id="messages">
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert alert-{{message.tags}}">
-                <a class="close" data-dismiss="alert">×</a>
-                {{message|safe}}
-              </div>
-            {% endfor %}
-          {% endif %}
-        </div>
+        <div id="wrapper">
+            <nav class="navbar-default navbar-side" role="navigation">
+                <div class="sidebar-collapse">
+                    <ul class="nav " id="main-menu">
+                        {% for url in urls %}
+                            <li>
+                                <a {% if url.active == True %}
+                                        class="active-menu"
+                                   {% endif %}
+                                href={{ url.url }}>&nbsp;&nbsp;{{ url.name }}</a>
+                                <i class="fa"></i>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </nav>
 
-        <div style="height: 100%;width: 100%;" class="container">
-          {% block content %}
-          {% endblock %}
-        </div> <!-- /container -->
+            <div id="messages">
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert alert-{{message.tags}}">
+                    <a class="close" data-dismiss="alert">×</a>
+                    {{message|safe}}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+
+            {% block content %}
+            {% endblock %}
+        </div>
   </body>
 </html>

@@ -104,6 +104,26 @@ class Nation(models.Model):  # 行政区划
             return self.province + self.city + self.district
 
 
+class Department(models.Model):  # 主管部门
+    name_cn = models.CharField(max_length=30)  # 名称
+
+    class Meta:
+        db_table = 'department'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return self.name_cn
+
+
+class EduLevel(models.Model):  # 办学层次
+    name_cn = models.CharField(max_length=30)  # 名称
+
+    class Meta:
+        db_table = 'edu_level'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return self.name_cn
+
+
 class EduClass(models.Model):  # 办学类别
     name_cn = models.CharField(max_length=30)  # 名称
 
@@ -117,20 +137,22 @@ class EduClass(models.Model):  # 办学类别
 class College(models.Model):
     name_cn = models.CharField(max_length=30, verbose_name="学校名称")  # 学校名
     id_code = models.CharField(max_length=30, verbose_name="学校标识码")  # 学校识别码
-    department = models.CharField(max_length=30, null=True, blank=True, verbose_name="主管部门")  # 所属部门
+    department = models.ForeignKey(Department, related_name='college', verbose_name="主管部门")  # 办学类型
     area = models.CharField(max_length=30, null=True, blank=True, verbose_name="片区")  # 片区
+    province = models.CharField(max_length=30, null=True, blank=True, verbose_name="所在地（省级）")  # 所在地（省级）
+    city = models.CharField(max_length=30, null=True, blank=True, verbose_name="所在地（城市）")  # 所在地（城市）
     nation_code = models.CharField(max_length=40, null=True, blank=True, verbose_name="行政区划编码")  # 行政区划编码
-    edu_level = models.CharField(max_length=30, null=True, blank=True, verbose_name="办学层次")  # 办学层次：本科or专科
+    edu_level = models.ForeignKey(EduLevel, related_name='college', verbose_name="办学层次")  # 办学层次：本科or专科
     edu_class = models.ForeignKey(EduClass, related_name='college', verbose_name="类别")  # 办学类型
     is_vice_ministry = models.BooleanField(default=False, verbose_name="副部级高校")  # 副部级高校
     is_211 = models.BooleanField(default=False, verbose_name="211工程")  # 211工程
     is_985 = models.BooleanField(default=False, verbose_name="985工程")  # 985工程
     is_985_platform = models.BooleanField(default=False, verbose_name="985平台")  # 985平台
     is_double_first_class = models.BooleanField(default=False, verbose_name="双一流大学")  # 双一流大学
-    setup_time = models.DateField(null=True, blank=True, verbose_name="成立时间")  # 成立时间
-    cancel_time = models.DateField(null=True, blank=True, verbose_name="注销时间")  # 注销时间
+    setup_time = models.CharField(max_length=50, null=True, blank=True, verbose_name="成立时间")  # 成立时间
+    cancel_time = models.CharField(max_length=50, null=True, blank=True, verbose_name="注销时间")  # 注销时间
     note = models.CharField(max_length=255, null=True, blank=True, verbose_name="备注")  # 备注
-    is_cancelled = models.BooleanField(default=False, verbose_name="已注销")  # 是否已取消
+    is_cancelled = models.BooleanField(default=False, verbose_name="已撤销")  # 是否已取消
     transfer_to = models.CharField(max_length=30, null=True, blank=True, verbose_name="合并后学校代码")  # 合并后的高校编码
 
     class Meta:

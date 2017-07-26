@@ -4,6 +4,14 @@
 from basic.models import College
 
 
+def get_all_colleges():
+    """
+
+    :return:
+    """
+    return College.objects.all()
+
+
 def get_college_by_id(college_id):
     """
 
@@ -19,7 +27,7 @@ def get_college_by_name(name_cn):
     :param name_cn:
     :return:
     """
-    return College.objects.get(name_cn=name_cn)
+    return College.objects.get(name_cn__contains=name_cn)
 
 
 def get_college_by_id_or_name(college):
@@ -37,4 +45,3 @@ def get_college_by_id_or_name(college):
     else:
         raise TypeError("college Type Error")
     return _college
-

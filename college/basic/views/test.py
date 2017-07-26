@@ -62,5 +62,8 @@ def test3(request):
 
 
 def test(request):
-    result = Table.drop_table("test")
+    from basic.models import Nation
+    from django.db.models import Q
+    result = Nation.objects.get(
+            code__contains="").code
     return HttpResponse(json.dumps(result))

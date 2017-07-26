@@ -22,6 +22,5 @@ from basic.views import test
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^test/', test.test),
-
     url(r'^backend/', include('backend.urls')),
 ]

@@ -20,7 +20,8 @@ from backend.views import index, college
 urlpatterns = [
     url(r'^$', index.index),
 
-    url(r'^college/$', college.get_all_colleges),
+    url(r'^college/$', college.index),
+    url(r'^college/all/$', college.get_all_colleges),
     url(r'^college/search/$', college.get_college_by_name),
     url(r'^college/add/$', college.add_college),
     url(r'^college/import/$', college.import_college),

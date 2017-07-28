@@ -1,0 +1,24 @@
+{% extends "backend/base.html" %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="page-header">
+            导入院校信息 <small>由excel文件导入</small>
+        </h1>
+    </div>
+</div>
+    <div class="row">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <p>
+                    {% for field in fields %}
+                        {{ field }},&nbsp;&nbsp;
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+        {% include "backend/file_upload.html" %}
+    </div>
+{% endblock %}

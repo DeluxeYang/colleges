@@ -15,14 +15,12 @@ def get_excel_head(wb):
     return excel_head
 
 
-def get_excel_body(wb):
+def get_excel_body_generator(wb):
     ws = wb.active
     _generator = ws.rows
     next(_generator)  # 去掉head
-    return_list = []
     for row in _generator:
         temp = []
         for cell in row:
             temp.append(str(cell.value))
-        return_list.append(temp)
-    return return_list
+        yield temp

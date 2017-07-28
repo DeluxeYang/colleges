@@ -13,7 +13,6 @@
         allowedFileExtensions : [],
         uploadExtraData: function(previewId, index) {   //额外参数的关键点
                     var obj = {"csrfmiddlewaretoken":getCookie('csrftoken')};
-                    console.log(obj);
                     return obj;
                 }
     });
@@ -38,7 +37,6 @@
             processData: false,
             contentType: false,
             success: function(data)  {
-                console.log("a");
                 $('#alert-success').css("display", "block");
             }
         });

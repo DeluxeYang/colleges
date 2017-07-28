@@ -15,20 +15,26 @@ body {
 #wrapper {
     width: 100%;
     background:#222222;
-    height: 100%;
 }
 
 #page-wrapper {
     padding: 15px 15px;
+    min-height: 600px;
     background:#E5EBF2;
-    height: 100%;
+   
 }
+
+.top-navbar-nav {
+    width: 80px;
+    text-align: center;
+}
+
 #page-inner {
     width:100%;
-    margin:10px 20px 0px 0px;
+    margin:10px 20px 10px 0px;
     background-color:transparent;
     padding:10px;
-    height: 100%;
+    min-height:1200px;
 }
 
 .text-center {
@@ -345,14 +351,8 @@ background: #172D44;
 .navbar-side {
 	border:none;
 	background-color: transparent;
-
+	
 }
-
-.top-navbar-nav {
-    width: 80px;
-    text-align: center;
-}
-
 .top-navbar {
 	background:#09192A;
 	border-bottom:none;
@@ -369,8 +369,8 @@ color:#fff;
 margin: 8px 0;
 }
 .navbar-default {
-    border:0px solid black;
-    background-color: #222222;
+border:0px solid black;
+     
 }
 .navbar-header {
     background: #09192A;
@@ -409,9 +409,10 @@ line-height: 1.428571429;
  
  @media(min-width:768px) {
      #page-wrapper{
-        margin: 0 0 0 260px;
+               margin: 0 0 0 260px;
         padding: 15px 30px;
-		height: 100%;
+        min-height: 1200px;
+		
     }
 	
 	
@@ -419,11 +420,10 @@ line-height: 1.428571429;
         z-index: 1;
         position: absolute;
         width: 260px;
-
     }
 
    .navbar {
- border-radius: 0px;
+ border-radius: 0px; 
 }
    
 }

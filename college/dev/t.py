@@ -1,5 +1,5 @@
 from openpyxl import load_workbook
-filename = '学校标识码（整合）.xlsx'
+filename = '学校标识码.xlsx'
 
 
 def load_excel(excel_file):

@@ -105,7 +105,7 @@ class Nation(models.Model):  # 行政区划
 
 
 class Department(models.Model):  # 主管部门
-    name_cn = models.CharField(max_length=30)  # 名称
+    name_cn = models.CharField(max_length=30, null=True, blank=True)  # 名称
 
     class Meta:
         db_table = 'department'
@@ -115,7 +115,7 @@ class Department(models.Model):  # 主管部门
 
 
 class EduLevel(models.Model):  # 办学层次
-    name_cn = models.CharField(max_length=30)  # 名称
+    name_cn = models.CharField(max_length=30, null=True, blank=True)  # 名称
 
     class Meta:
         db_table = 'edu_level'
@@ -125,7 +125,7 @@ class EduLevel(models.Model):  # 办学层次
 
 
 class EduClass(models.Model):  # 办学类别
-    name_cn = models.CharField(max_length=30)  # 名称
+    name_cn = models.CharField(max_length=30, null=True, blank=True)  # 名称
 
     class Meta:
         db_table = 'edu_class'
@@ -149,8 +149,8 @@ class College(models.Model):
     is_985 = models.BooleanField(default=False, verbose_name="985工程")  # 985工程
     is_985_platform = models.BooleanField(default=False, verbose_name="985平台")  # 985平台
     is_double_first_class = models.BooleanField(default=False, verbose_name="双一流大学")  # 双一流大学
-    setup_time = models.CharField(max_length=50, null=True, blank=True, verbose_name="成立时间")  # 成立时间
-    cancel_time = models.CharField(max_length=50, null=True, blank=True, verbose_name="注销时间")  # 注销时间
+    setup_time = models.DateField(null=True, blank=True, verbose_name="成立时间")  # 成立时间
+    cancel_time = models.DateField(null=True, blank=True, verbose_name="注销时间")  # 注销时间
     note = models.CharField(max_length=255, null=True, blank=True, verbose_name="备注")  # 备注
     is_cancelled = models.BooleanField(default=False, verbose_name="已撤销")  # 是否已取消
     transfer_to = models.CharField(max_length=30, null=True, blank=True, verbose_name="合并后学校代码")  # 合并后的高校编码

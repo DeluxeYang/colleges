@@ -2,6 +2,7 @@
 <script src="/static/js/locales/zh.js" type="text/javascript"></script>
 <link href="/static/css/fileinput.css" media="all" rel="stylesheet" type="text/css" />
 <form role="form" id="excel_upload" enctype="multipart/form-data">
+    {% csrf_token %}
     <div class="form-group">
         <input id="file-zh" name="file_upload" type="file" multiple>
     </div>

@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BatchOfTable',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
-                ('name_cn', models.CharField(blank=True, max_length=255, null=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('name_cn', models.CharField(max_length=255, blank=True, null=True)),
                 ('create_time', models.DateField(blank=True, null=True)),
                 ('excel_file', models.FileField(blank=True, upload_to='data/excel', null=True)),
             ],
@@ -27,23 +27,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='College',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
-                ('name_cn', models.CharField(verbose_name='学校名称', max_length=30)),
-                ('id_code', models.CharField(verbose_name='学校标识码', max_length=30)),
-                ('area', models.CharField(blank=True, verbose_name='片区', max_length=30, null=True)),
-                ('province', models.CharField(blank=True, verbose_name='所在地（省级）', max_length=30, null=True)),
-                ('city', models.CharField(blank=True, verbose_name='所在地（城市）', max_length=30, null=True)),
-                ('nation_code', models.CharField(blank=True, verbose_name='行政区划编码', max_length=40, null=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('name_cn', models.CharField(unique=True, max_length=30, verbose_name='学校名称')),
+                ('id_code', models.CharField(unique=True, max_length=30, verbose_name='学校标识码')),
+                ('area', models.CharField(max_length=30, blank=True, null=True, verbose_name='片区')),
+                ('province', models.CharField(max_length=30, blank=True, null=True, verbose_name='所在地（省级）')),
+                ('city', models.CharField(max_length=30, blank=True, null=True, verbose_name='所在地（城市）')),
+                ('nation_code', models.CharField(max_length=40, blank=True, null=True, verbose_name='行政区划编码')),
                 ('is_vice_ministry', models.BooleanField(default=False, verbose_name='副部级高校')),
                 ('is_211', models.BooleanField(default=False, verbose_name='211工程')),
                 ('is_985', models.BooleanField(default=False, verbose_name='985工程')),
                 ('is_985_platform', models.BooleanField(default=False, verbose_name='985平台')),
                 ('is_double_first_class', models.BooleanField(default=False, verbose_name='双一流大学')),
-                ('setup_time', models.CharField(blank=True, verbose_name='成立时间', max_length=50, null=True)),
-                ('cancel_time', models.CharField(blank=True, verbose_name='注销时间', max_length=50, null=True)),
-                ('note', models.CharField(blank=True, verbose_name='备注', max_length=255, null=True)),
+                ('setup_time', models.DateField(blank=True, null=True, verbose_name='成立时间')),
+                ('cancel_time', models.DateField(blank=True, null=True, verbose_name='注销时间')),
+                ('note', models.CharField(max_length=255, blank=True, null=True, verbose_name='备注')),
                 ('is_cancelled', models.BooleanField(default=False, verbose_name='已撤销')),
-                ('transfer_to', models.CharField(blank=True, verbose_name='合并后学校代码', max_length=30, null=True)),
+                ('transfer_to', models.CharField(max_length=30, blank=True, null=True, verbose_name='合并后学校代码')),
             ],
             options={
                 'db_table': 'college',
@@ -52,8 +52,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Department',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
-                ('name_cn', models.CharField(max_length=30)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('name_cn', models.CharField(max_length=30, blank=True, null=True)),
             ],
             options={
                 'db_table': 'department',
@@ -62,8 +62,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EduClass',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
-                ('name_cn', models.CharField(max_length=30)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('name_cn', models.CharField(max_length=30, blank=True, null=True)),
             ],
             options={
                 'db_table': 'edu_class',
@@ -72,8 +72,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EduLevel',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
-                ('name_cn', models.CharField(max_length=30)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('name_cn', models.CharField(max_length=30, blank=True, null=True)),
             ],
             options={
                 'db_table': 'edu_level',
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Field',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=30)),
                 ('name_cn', models.CharField(max_length=255)),
             ],
@@ -93,15 +93,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Nation',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
-                ('code', models.CharField(blank=True, max_length=40, null=True)),
-                ('province', models.CharField(blank=True, max_length=40, null=True)),
-                ('city', models.CharField(blank=True, max_length=40, null=True)),
-                ('district', models.CharField(blank=True, max_length=40, null=True)),
-                ('parent', models.CharField(blank=True, max_length=40, null=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('code', models.CharField(max_length=40, blank=True, null=True)),
+                ('province', models.CharField(max_length=40, blank=True, null=True)),
+                ('city', models.CharField(max_length=40, blank=True, null=True)),
+                ('district', models.CharField(max_length=40, blank=True, null=True)),
+                ('parent', models.CharField(max_length=40, blank=True, null=True)),
                 ('lng', models.FloatField(default=0)),
                 ('lat', models.FloatField(default=0)),
-                ('geohash', models.CharField(blank=True, max_length=40, null=True)),
+                ('geohash', models.CharField(max_length=40, blank=True, null=True)),
             ],
             options={
                 'db_table': 'nation',
@@ -110,9 +110,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='News',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(unique=True, max_length=255)),
-                ('keywords', models.CharField(blank=True, max_length=100, null=True)),
+                ('keywords', models.CharField(max_length=100, blank=True, null=True)),
                 ('description', models.TextField(blank=True, null=True)),
                 ('content', models.TextField(blank=True, null=True)),
                 ('is_published', models.BooleanField(default=False)),
@@ -132,7 +132,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsAndTag',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('news', models.ForeignKey(related_name='news_and_tag', to='basic.News')),
             ],
             options={
@@ -142,7 +142,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsComment',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('content', models.TextField(blank=True, null=True)),
                 ('reply', models.IntegerField(blank=True, null=True)),
                 ('news', models.ForeignKey(related_name='news_comment', to='basic.News')),
@@ -155,7 +155,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsTag',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=255)),
             ],
             options={
@@ -165,7 +165,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Table',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(unique=True, max_length=30)),
                 ('name_cn', models.CharField(unique=True, max_length=255)),
                 ('create_time', models.DateField(blank=True, null=True)),
@@ -177,7 +177,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TypeOfField',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(unique=True, max_length=30)),
                 ('size', models.IntegerField(blank=True, null=True)),
             ],
@@ -188,7 +188,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TypeOfTable',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('name_cn', models.CharField(unique=True, max_length=30)),
             ],
             options={
@@ -198,12 +198,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='YearSeasonMonth',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', serialize=False, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('year', models.IntegerField(blank=True, null=True)),
                 ('season', models.IntegerField(blank=True, null=True)),
                 ('month', models.IntegerField(blank=True, null=True)),
                 ('type', models.IntegerField(default=0)),
-                ('text', models.CharField(blank=True, max_length=30, null=True)),
+                ('text', models.CharField(max_length=30, blank=True, null=True)),
             ],
             options={
                 'db_table': 'year_season_month',
@@ -242,17 +242,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='college',
             name='department',
-            field=models.ForeignKey(to='basic.Department', related_name='college', verbose_name='主管部门'),
+            field=models.ForeignKey(to='basic.Department', verbose_name='主管部门', related_name='college'),
         ),
         migrations.AddField(
             model_name='college',
             name='edu_class',
-            field=models.ForeignKey(to='basic.EduClass', related_name='college', verbose_name='类别'),
+            field=models.ForeignKey(to='basic.EduClass', verbose_name='类别', related_name='college'),
         ),
         migrations.AddField(
             model_name='college',
             name='edu_level',
-            field=models.ForeignKey(to='basic.EduLevel', related_name='college', verbose_name='办学层次'),
+            field=models.ForeignKey(to='basic.EduLevel', verbose_name='办学层次', related_name='college'),
         ),
         migrations.AddField(
             model_name='batchoftable',

@@ -51,6 +51,7 @@ def index(request):
                                   "self": request.user,
                                   "fields": model_fields,
                                   "urls": urls,
+                                  "file_delete_url": "/backend/college/delete/",
                                   "get_all_college_url": "/backend/college/all/"
                               },
                               context_instance=RequestContext(request))
@@ -86,9 +87,9 @@ def get_all_colleges(request):
             "是" if college.is_cancelled else "",
             college.transfer_to,
             "<a href='/backend/college/modify/" + str(college.id) + "/'>修改</a>",
-            "<a href='/backend/college/delete/" + str(college.id) + "/'" +
-            " onclick=\"return confirm('确认删除" + college.name_cn + "？')\">删除</a>"
-        ])
+            "<a id='row_" + str(college.id) +
+            "' href='javascript:href_ajax(" + str(college.id) + ")'" +
+            " onclick=\"return confirm('确认删除" + college.name_cn + "？')\">删除</a>"])
         i += 1
     return HttpResponse(json.dumps(return_dict))
 
@@ -213,28 +214,26 @@ def modify_college(request, college_id):
     """
     college = College_model.objects.get(id=college_id)
     if request.method == "POST":
-        print(request.POST)
         try:
             nation = Nation.objects.get(code=request.POST["city"])
-
-            college.update(
-                name_cn=request.POST["name_cn"],
-                id_code=request.POST["id_code"],
-                department=Department.objects.get(id=int(request.POST["department"])),
-                edu_level=EduLevel.objects.get(id=int(request.POST["edu_level"])),
-                edu_class=EduClass.objects.get(id=int(request.POST["edu_class"])),
-                city=nation.city,
-                province=Nation.objects.get(id=nation.parent).province,
-                is_vice_ministry=True if "is_vice_ministry" in request.POST else False,
-                is_211=True if "is_211" in request.POST else False,
-                is_985=True if "is_985" in request.POST else False,
-                is_985_platform=True if "is_985_platform" in request.POST else False,
-                is_double_first_class=True if "is_double_first_class" in request.POST else False,
-                is_cancelled=True if "is_cancelled" in request.POST else False,
-                setup_time=get_date_from_post(request.POST.get("setup_time", "")),
-                cancel_time=get_date_from_post(request.POST.get("cancel_time", "")),
-                note=request.POST.get("note", ""),
-                transfer_to=request.POST.get("transfer_to", ""))
+            college.name_cn = request.POST["name_cn"]
+            college.id_code = request.POST["id_code"]
+            college.department = Department.objects.get(id=int(request.POST["department"]))
+            college.edu_level = EduLevel.objects.get(id=int(request.POST["edu_level"]))
+            college.edu_class = EduClass.objects.get(id=int(request.POST["edu_class"]))
+            college.city = nation.city
+            college.province = Nation.objects.get(id=nation.parent).province
+            college.is_vice_ministry = True if "is_vice_ministry" in request.POST else False
+            college.is_211 = True if "is_211" in request.POST else False
+            college.is_985 = True if "is_985" in request.POST else False
+            college.is_985_platform = True if "is_985_platform" in request.POST else False
+            college.is_double_first_class = True if "is_double_first_class" in request.POST else False
+            college.is_cancelled = True if "is_cancelled" in request.POST else False
+            college.setup_time = get_date_from_post(request.POST.get("setup_time", ""))
+            college.cancel_time = get_date_from_post(request.POST.get("cancel_time", ""))
+            college.note = request.POST.get("note", "")
+            college.transfer_to = request.POST.get("transfer_to", "")
+            college.save()
             messages.success(request, "修改成功")
         except IntegrityError as e:  # 处理重复添加错误
             logger.error(str(e))
@@ -252,6 +251,23 @@ def modify_college(request, college_id):
             "fields": fields_dict,
             "urls": urls
         }, context_instance=RequestContext(request))
+
+
+def delete_college(request):
+    """
+
+    :param request:
+    :return:
+    """
+    return_dict = {}
+    try:
+        College_model.objects.get(id=int(request.POST["college_id"])).delete()
+        return_dict["success"] = "删除成功"
+    except Exception as e:
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        return_dict["error"] = "删除失败"
+    return HttpResponse(json.dumps(return_dict))
 
 
 def get_date_from_post(content):

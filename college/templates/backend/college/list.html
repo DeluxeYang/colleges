@@ -34,6 +34,33 @@ $(document).ready(function () {
         "ajax": '{{ get_all_college_url }}'
     } );
 });
+function href_ajax(_id) {
+    function getCookie(name) {
+        var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)"); //正则匹配
+        if(arr=document.cookie.match(reg)){
+          return unescape(arr[2]);
+        }
+        else{
+         return null;
+        }
+    }
+    $.ajax({
+        type: "post",
+        url: "{{ file_delete_url }}",
+        data: {"college_id": _id, "csrfmiddlewaretoken": getCookie('csrftoken')},
+        dataType:"json",
+        success: function(data)  {
+            var _table = $('#dataTables-example').DataTable();
+            $('#alert-success').css("display", "block");
+            _table.row($("#row_"+_id).parents('tr')).remove().draw();
+            if(data["success"]){
+                $('#messages').append('<div class="alert alert-success"> <a class="close" data-dismiss="alert">×</a>'+data["success"]+' </div>');
+            }else{
+                $('#messages').append('<div class="alert alert-danger"> <a class="close" data-dismiss="alert">×</a>'+data["error"]+' </div>')
+            }
+        }
+    });
+}
 </script>
 
 {% endblock %}

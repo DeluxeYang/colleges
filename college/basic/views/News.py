@@ -157,19 +157,19 @@ def update_news(news, tags):
     :param tags:
     :return:
     """
-    _news = get_news_by_id_or_title(news).
-    _news.update(
-        user=news["user"],
-        college=get_college_by_id_or_name(news["college"]),
-        title=news["title"],
-        keyword=news["keyword"],
-        description=news["description"],
-        content=news["content"],
-        is_published=news["is_published"],
-        is_allow_comments=news["is_allow_comments"],
-        is_stick_top=news["is_stick_top"],
-        is_bold=news["is_bold"],
-        publish_time=datetime.datetime.now() if news["is_published"] else None)
+    _news = get_news_by_id_or_title(news)
+    _news.user = news["user"]
+    _news.college = get_college_by_id_or_name(news["college"])
+    _news.title = news["title"]
+    _news.keyword = news["keyword"]
+    _news.description = news["description"]
+    _news.content = news["content"]
+    _news.is_published = news["is_published"]
+    _news.is_allow_comments = news["is_allow_comments"]
+    _news.is_stick_top = news["is_stick_top"]
+    _news.is_bold = news["is_bold"]
+    _news.publish_time = datetime.datetime.now() if news["is_published"] else None
+    _news.save()
     NewsAndTag.objects.filter(news=_news).delete()
     for tag in tags:
         NewsAndTag.objects.create(news=_news,

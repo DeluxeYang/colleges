@@ -20,15 +20,27 @@ from basic.utils.logger import logger
 
 SIDEBAR_URL = [
     {"url": "/backend/college/", "name": "院校信息", "active": False},
-    {"url": "/backend/college/search/", "name": "搜索院校", "active": False,
+    {"url": "#", "name": "搜索院校", "active": False,
      "drop_down": [
-        {"url": "/backend/college/search/by_class/", "name": "按类别搜索院校",
+        {"url": "#", "name": "按地域筛选院校",
          "drop_down": [
-            {"url": "/backend/college/search/by_nation/", "name": "3"},
-            {"url": "/backend/college/search/by_nation/", "name": "3"},
+            {"url": "/backend/college/search/area/", "name": "按片区筛选院校"},
+            {"url": "/backend/college/search/nation/", "name": "按省市筛选院校"},
          ]},
-        {"url": "/backend/college/search/by_nation/", "name": "按地域搜索院校"},
-        {"url": "/backend/college/search/by_nation/", "name": "按搜索院校"},
+        {"url": "#", "name": "按类型筛选院校",
+         "drop_down": [
+             {"url": "/backend/college/search/department/", "name": "按主管部门筛选院校"},
+             {"url": "/backend/college/search/level/", "name": "按办学层次筛选院校"},
+             {"url": "/backend/college/search/class/", "name": "按办学类别筛选院校"},
+         ]},
+        {"url": "#", "name": "按类别筛选院校", "drop_down": [
+             {"url": "/backend/college/search/b/211/", "name": "211工程院校"},
+             {"url": "/backend/college/search/b/985/", "name": "985工程院校"},
+             {"url": "/backend/college/search/b/985_platform/", "name": "985平台院校"},
+             {"url": "/backend/college/search/b/vice_ministry/", "name": "副部级院校"},
+             {"url": "/backend/college/search/b/double_first/", "name": "双一流院校"},
+             {"url": "/backend/college/search/b/cancelled/", "name": "已取消院校"},
+         ]},
      ]},
     {"url": "/backend/college/add/", "name": "添加院校", "active": False},
     {"url": "/backend/college/import/", "name": "批量导入院校", "active": False},
@@ -52,18 +64,19 @@ def index(request):
                                   "fields": model_fields,
                                   "urls": urls,
                                   "file_delete_url": "/backend/college/delete/",
-                                  "get_all_college_url": "/backend/college/all/"
+                                  "get_all_college_url": "/backend/college/retrieve/"
                               },
                               context_instance=RequestContext(request))
 
 
-def get_all_colleges(request):
+def get_colleges(request, param=None):
     """
     获取所有院校信息
-    :param request:
     :return: json
     """
     colleges = College.get_all_colleges()
+    if param:
+        colleges = colleges.filter(is_211=True)
     return_dict = {"data": []}
     i = 1
     for college in colleges:
@@ -94,18 +107,24 @@ def get_all_colleges(request):
     return HttpResponse(json.dumps(return_dict))
 
 
-def get_college_by_name(request):
+def search(request, param):
     """
 
-    :param request:
     :return:
     """
+    print(param)
+    model_fields = ["#", "院校名称", "标识码", "主管部门", "省", "市", "层次",
+                    "类别", "副部级", "211", "985", "985平台", "双一流",
+                    "成立时间", "注销时间", "备注", "已撤销", "合并后", "修改", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
-    urls[1]["active"] = True
-    return render_to_response("backend/base.html",
+    urls[0]["active"] = True
+    return render_to_response("backend/college/list.html",
                               {
                                   "self": request.user,
-                                  "urls": urls
+                                  "fields": model_fields,
+                                  "urls": urls,
+                                  "file_delete_url": "/backend/college/delete/",
+                                  "get_all_college_url": "/backend/college/retrieve/"+param+"/"
                               },
                               context_instance=RequestContext(request))
 

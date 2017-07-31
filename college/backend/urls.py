@@ -21,8 +21,9 @@ urlpatterns = [
     url(r'^$', index.index),
 
     url(r'^college/$', college.index),
-    url(r'^college/all/$', college.get_all_colleges),
-    url(r'^college/search/$', college.get_college_by_name),
+    url(r'^college/retrieve/$', college.get_colleges),
+    url(r'^college/retrieve/(?P<param>.+)/$', college.get_colleges),
+    url(r'^college/search/b/(?P<param>.+)/$', college.search),
     url(r'^college/add/$', college.add_college),
     url(r'^college/modify/(?P<college_id>[0-9]+)/$', college.modify_college),
     url(r'^college/delete/$', college.delete_college),

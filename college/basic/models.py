@@ -135,8 +135,8 @@ class EduClass(models.Model):  # 办学类别
 
 
 class College(models.Model):
-    name_cn = models.CharField(max_length=30, verbose_name="学校名称")  # 学校名
-    id_code = models.CharField(max_length=30, verbose_name="学校标识码")  # 学校识别码
+    name_cn = models.CharField(max_length=30, unique=True, verbose_name="学校名称")  # 学校名
+    id_code = models.CharField(max_length=30, unique=True, verbose_name="学校标识码")  # 学校识别码
     department = models.ForeignKey(Department, related_name='college', verbose_name="主管部门")  # 办学类型
     area = models.CharField(max_length=30, null=True, blank=True, verbose_name="片区")  # 片区
     province = models.CharField(max_length=30, null=True, blank=True, verbose_name="所在地（省级）")  # 所在地（省级）

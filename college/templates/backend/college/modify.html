@@ -9,7 +9,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            添加院校 <small>填写全部信息</small>
+            院校信息 <small>编辑院校信息</small>
         </h1>
     </div>
 </div>
@@ -24,16 +24,25 @@
                             {% csrf_token %}
                             <div class="form-group">
                                 <label>{{ fields.char.0.name }}</label>
-                                <input class="form-control" name="{{ fields.char.0.field }}">
+                                <input class="form-control" name="{{ fields.char.0.field }}"
+                                value="{{ fields.char.0.value }}">
                             </div>
                             <div class="form-group">
                                 <label>{{ fields.char.1.name }}</label>
-                                <input class="form-control" name="{{ fields.char.1.field }}">
+                                <input class="form-control" name="{{ fields.char.1.field }}"
+                                value="{{ fields.char.1.value }}">
                             </div>
                             {% for foreign_key in fields.foreign_key %}
                                 <div class="form-group">
                                     <label>{{ foreign_key.name }}</label>
                                     <select class="form-control" name="{{ foreign_key.field }}">
+                                        <option value="{{ foreign_key.value.id }}">
+                                            {% if  foreign_key.value.name_cn%}
+                                                {{ foreign_key.value.name_cn }}
+                                            {% else %}
+                                                空
+                                            {% endif %}
+                                        </option>
                                         {% for field in foreign_key.fields%}
                                             <option value="{{ field.id }}">
                                                 {% if  field.name_cn%}
@@ -51,7 +60,7 @@
                                     <label for="exampleInputText">{{ field.name }}</label>
                                     <div class="input-group date form_datetime col-md-12">
                                         <input class="form-control" id="id_{{ field.field }}" name="{{ field.field }}"
-                                               size="16" type="text">
+                                               size="16" type="text" value="{{ field.value }}">
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-remove"></span>
                                         </span>
@@ -71,20 +80,22 @@
                             </div>
                             <div class="form-group">
                                 <label>{{ fields.char.2.name }}</label>
-                                <input class="form-control" name="{{ fields.char.2.field }}">
+                                <input class="form-control" name="{{ fields.char.2.field }}"
+                                value="{{ fields.char.2.value }}">
                             </div>
                             <div class="form-group">
                                 {% for field in fields.boolean %}
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" value="" name="{{ field.field }}">{{ field.name }}
+                                            <input type="checkbox" {{ field.value }} name="{{ field.field }}">{{ field.name }}
                                         </label>
                                     </div>
                                 {% endfor %}
                             </div>
                             <div class="form-group">
                                 <label>{{ fields.char.3.name }}</label>
-                                <input class="form-control" name="{{ fields.char.3.field }}">
+                                <input class="form-control" name="{{ fields.char.3.field }}"
+                                value="{{ fields.char.3.value }}">
                             </div>
                             <input type="submit" value="提交" class="btn btn-default" />
                         </form>
@@ -113,13 +124,11 @@ function getNowFormatDate() {
 
 $(".distpicker").distpicker({
     autoSelect: true,
-    province: '{{province_L.province}}',
-    city: '{{city_L.city}}',
-    district: '{{district_L.district}}'
+    province: '{{fields.nation.0.value}}',
+    city: '{{fields.nation.1.value}}'
 });
 
 $('.form_datetime').datetimepicker({
-	//language:  'fr',
 	weekStart: 1,
 	todayBtn:  1,
 	autoclose: 1,

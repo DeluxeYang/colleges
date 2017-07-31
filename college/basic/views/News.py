@@ -157,7 +157,7 @@ def update_news(news, tags):
     :param tags:
     :return:
     """
-    _news = get_news_by_id_or_title(news)
+    _news = get_news_by_id_or_title(news).
     _news.update(
         user=news["user"],
         college=get_college_by_id_or_name(news["college"]),

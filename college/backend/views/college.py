@@ -5,8 +5,9 @@ import json
 import datetime
 import traceback
 
+from django.db import IntegrityError
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.template.context import RequestContext
 from django.shortcuts import render_to_response
@@ -98,28 +99,29 @@ def get_college_by_name(request):
     :param request:
     :return:
     """
-    college = request.POST.get("college_name", "")
-    # college = College.get_college_by_name(college_name_cn)
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[1]["active"] = True
     return render_to_response("backend/base.html",
                               {
                                   "self": request.user,
-                                  "colleges": college,
                                   "urls": urls
                               },
                               context_instance=RequestContext(request))
 
 
-def college_classification():
+def college_classification(obj):
     """
 
     :return:
     """
     fields_dict = {"char": [], "boolean": [], "foreign_key": [], "nation": [], "time": []}
     for field in College_model._meta.fields:
-        temp = {"name": field.verbose_name, "field": str(field).split(".")[2]}
+        _field = str(field).split(".")[2]
+        temp = {"name": field.verbose_name,
+                "field": _field,
+                "value": obj.get(_field, "")}
         if type(field).__name__ == "CharField":
+            temp["value"] = temp["value"] if temp["value"] else ""
             if temp["field"] == "area" or temp["field"] == "nation_code":
                 continue
             elif temp["field"] == "province" or temp["field"] == "city":
@@ -127,16 +129,30 @@ def college_classification():
             else:
                 fields_dict["char"].append(temp)
         elif type(field).__name__ == "DateField":
+            temp["value"] = temp["value"].strftime("%Y-%m-%d") if temp["value"] else ""
             fields_dict["time"].append(temp)
         elif type(field).__name__ == "BooleanField":
+            temp["value"] = "checked" if temp["value"] else ""
             fields_dict["boolean"].append(temp)
         elif type(field).__name__ == "ForeignKey":
             if temp["field"] == "department":
-                temp["field"] = Department.objects.all().order_by("name_cn")
+                if _field+"_id" in obj:
+                    temp["value"] = Department.objects.get(id=obj[_field+"_id"])
+                    temp["fields"] = Department.objects.exclude(id=obj[_field+"_id"])
+                else:
+                    temp["fields"] = Department.objects.all().order_by("name_cn")
             elif temp["field"] == "edu_level":
-                temp["field"] = EduLevel.objects.all().order_by("name_cn")
+                if _field+"_id" in obj:
+                    temp["value"] = EduLevel.objects.get(id=obj[_field+"_id"])
+                    temp["fields"] = EduLevel.objects.exclude(id=obj[_field+"_id"])
+                else:
+                    temp["fields"] = EduLevel.objects.all().order_by("name_cn")
             elif temp["field"] == "edu_class":
-                temp["field"] = EduClass.objects.all().order_by("name_cn")
+                if _field+"_id" in obj:
+                    temp["value"] = EduClass.objects.get(id=obj[_field+"_id"])
+                    temp["fields"] = EduClass.objects.exclude(id=obj[_field+"_id"])
+                else:
+                    temp["fields"] = EduClass.objects.all().order_by("name_cn")
             fields_dict["foreign_key"].append(temp)
     return fields_dict
 
@@ -147,16 +163,102 @@ def add_college(request):
     :param request:
     :return:
     """
-    fields_dict = college_classification()
+    if request.method == "POST":
+        try:
+            nation = Nation.objects.get(code=request.POST["city"])
+            college = College_model.objects.create(
+                name_cn=request.POST["name_cn"],
+                id_code=request.POST["id_code"],
+                department=Department.objects.get(id=int(request.POST["department"])),
+                edu_level=EduLevel.objects.get(id=int(request.POST["edu_level"])),
+                edu_class=EduClass.objects.get(id=int(request.POST["edu_class"])),
+                city=nation.city,
+                province=Nation.objects.get(id=nation.parent).province,
+                is_vice_ministry=True if "is_vice_ministry" in request.POST else False,
+                is_211=True if "is_211" in request.POST else False,
+                is_985=True if "is_985" in request.POST else False,
+                is_985_platform=True if "is_985_platform" in request.POST else False,
+                is_double_first_class=True if "is_double_first_class" in request.POST else False,
+                is_cancelled=True if "is_cancelled" in request.POST else False,
+                setup_time=get_date_from_post(request.POST.get("setup_time", "")),
+                cancel_time=get_date_from_post(request.POST.get("cancel_time", "")),
+                note=request.POST.get("note", ""),
+                transfer_to=request.POST.get("transfer_to", ""))
+            messages.success(request, "添加成功")
+            return HttpResponseRedirect("/backend/college/modify/" + str(college.id) + "/")
+        except IntegrityError as e:  # 处理重复添加错误
+            logger.error(str(e))
+            logger.error(traceback.format_exc())
+            messages.error(request, "添加失败，院校名称或识别码重复添加")
+        except Exception as e:
+            logger.error(str(e))
+            logger.error(traceback.format_exc())
+            messages.error(request, "添加失败，请检查添加的数据")
+    fields_dict = college_classification(obj={})
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[2]["active"] = True
-    return render_to_response("backend/college/add.html",
-                              {
-                                  "self": request.user,
-                                  "fields": fields_dict,
-                                  "urls": urls
-                              },
-                              context_instance=RequestContext(request))
+    return render_to_response("backend/college/add.html", {
+            "self": request.user,
+            "fields": fields_dict,
+            "urls": urls
+        }, context_instance=RequestContext(request))
+
+
+def modify_college(request, college_id):
+    """
+
+    :param request:
+    :param college_id:
+    :return:
+    """
+    college = College_model.objects.get(id=college_id)
+    if request.method == "POST":
+        print(request.POST)
+        try:
+            nation = Nation.objects.get(code=request.POST["city"])
+
+            college.update(
+                name_cn=request.POST["name_cn"],
+                id_code=request.POST["id_code"],
+                department=Department.objects.get(id=int(request.POST["department"])),
+                edu_level=EduLevel.objects.get(id=int(request.POST["edu_level"])),
+                edu_class=EduClass.objects.get(id=int(request.POST["edu_class"])),
+                city=nation.city,
+                province=Nation.objects.get(id=nation.parent).province,
+                is_vice_ministry=True if "is_vice_ministry" in request.POST else False,
+                is_211=True if "is_211" in request.POST else False,
+                is_985=True if "is_985" in request.POST else False,
+                is_985_platform=True if "is_985_platform" in request.POST else False,
+                is_double_first_class=True if "is_double_first_class" in request.POST else False,
+                is_cancelled=True if "is_cancelled" in request.POST else False,
+                setup_time=get_date_from_post(request.POST.get("setup_time", "")),
+                cancel_time=get_date_from_post(request.POST.get("cancel_time", "")),
+                note=request.POST.get("note", ""),
+                transfer_to=request.POST.get("transfer_to", ""))
+            messages.success(request, "修改成功")
+        except IntegrityError as e:  # 处理重复添加错误
+            logger.error(str(e))
+            logger.error(traceback.format_exc())
+            messages.error(request, "添加失败，院校名称或识别码重复添加")
+        except Exception as e:
+            logger.error(str(e))
+            logger.error(traceback.format_exc())
+            messages.error(request, "添加失败，请检查添加的数据")
+    fields_dict = college_classification(college.__dict__)
+    urls = copy.deepcopy(SIDEBAR_URL)
+    urls[0]["active"] = True
+    return render_to_response("backend/college/modify.html", {
+            "self": request.user,
+            "fields": fields_dict,
+            "urls": urls
+        }, context_instance=RequestContext(request))
+
+
+def get_date_from_post(content):
+    if content != "":
+        return datetime.datetime.strptime(content, "%Y-%m-%d")
+    else:
+        return None
 
 
 def get_obj_or_insert_obj(obj, query):
@@ -213,7 +315,7 @@ def get_nation_code(city):
         return nation_code
 
 
-def get_date(text):
+def get_date_from_excel(text):
     """
     获取日期
     :param text:
@@ -260,8 +362,8 @@ def import_college(request):
                     is_985=empty_is_false(record[temp_dict[model_fields[12]]]),
                     is_985_platform=empty_is_false(record[temp_dict[model_fields[13]]]),
                     is_double_first_class=empty_is_false(record[temp_dict[model_fields[14]]]),
-                    setup_time=get_date(record[temp_dict[model_fields[15]]]),
-                    cancel_time=get_date(record[temp_dict[model_fields[16]]]),
+                    setup_time=get_date_from_excel(record[temp_dict[model_fields[15]]]),
+                    cancel_time=get_date_from_excel(record[temp_dict[model_fields[16]]]),
                     note=empty_is_empty(record[temp_dict[model_fields[17]]]),
                     is_cancelled=empty_is_false(record[temp_dict[model_fields[18]]]),
                     transfer_to=empty_is_empty(record[temp_dict[model_fields[19]]]),

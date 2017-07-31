@@ -24,5 +24,6 @@ urlpatterns = [
     url(r'^college/all/$', college.get_all_colleges),
     url(r'^college/search/$', college.get_college_by_name),
     url(r'^college/add/$', college.add_college),
+    url(r'^college/modify/(?P<college_id>[0-9]+)/$', college.modify_college),
     url(r'^college/import/$', college.import_college),
 ]

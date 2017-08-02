@@ -21,11 +21,17 @@ urlpatterns = [
     url(r'^$', index.index),
 
     url(r'^college/$', college.index),
-    url(r'^college/retrieve/$', college.get_colleges),
-    url(r'^college/retrieve/(?P<param>.+)/$', college.get_colleges),
-    url(r'^college/search/b/(?P<param>.+)/$', college.search),
+    url(r'^college/search/(?P<param>[a-zA-Z0-9_]+)/$', college.index),
+    url(r'^college/search/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', college.index),
+
+    url(r'^college/retrieve/$', college.retrieve_colleges),
+    url(r'^college/retrieve/(?P<param>[a-zA-Z0-9_]+)/$', college.retrieve_colleges),
+    url(r'^college/pick/(?P<param>[a-zA-Z0-9_]+)/$', college.college_search_pick),
+    url(r'^college/retrieve/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', college.retrieve_colleges),
+
     url(r'^college/add/$', college.add_college),
     url(r'^college/modify/(?P<college_id>[0-9]+)/$', college.modify_college),
     url(r'^college/delete/$', college.delete_college),
+    url(r'^college/batch_delete/$', college.batch_delete_college),
     url(r'^college/import/$', college.import_college),
 ]

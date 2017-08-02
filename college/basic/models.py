@@ -162,6 +162,18 @@ class College(models.Model):
         return self.name_cn
 
 
+class Area(models.Model):
+    name_cn = models.CharField(max_length=30)
+    nation_code_2 = models.CharField(max_length=2, null=True, blank=True)
+    is_index = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'area'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return self.name_cn
+
+
 class NewsTag(models.Model):
     title = models.CharField(max_length=255)
 

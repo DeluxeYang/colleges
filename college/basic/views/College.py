@@ -45,3 +45,5 @@ def get_college_by_id_or_name(college):
     else:
         raise TypeError("college Type Error")
     return _college
+
+

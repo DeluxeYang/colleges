@@ -5,6 +5,7 @@ import json
 import datetime
 import traceback
 
+from django.db import connection
 from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
@@ -13,7 +14,7 @@ from django.template.context import RequestContext
 from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
 
-from basic.models import College as College_model, Nation, Department, EduLevel, EduClass
+from basic.models import College as College_model, Nation, Department, EduLevel, EduClass, Area
 from basic.views import College
 from basic.utils import excel_loader
 from basic.utils.logger import logger
@@ -22,24 +23,24 @@ SIDEBAR_URL = [
     {"url": "/backend/college/", "name": "院校信息", "active": False},
     {"url": "#", "name": "搜索院校", "active": False,
      "drop_down": [
-        {"url": "#", "name": "按地域筛选院校",
+        {"url": "#", "name": "按 地域 筛选院校",
          "drop_down": [
-            {"url": "/backend/college/search/area/", "name": "按片区筛选院校"},
-            {"url": "/backend/college/search/nation/", "name": "按省市筛选院校"},
+            {"url": "/backend/college/pick/area/", "name": "按 片区 筛选院校"},
+            {"url": "/backend/college/pick/nation/", "name": "按 省市 筛选院校"},
          ]},
-        {"url": "#", "name": "按类型筛选院校",
+        {"url": "#", "name": "按 类型 筛选院校",
          "drop_down": [
-             {"url": "/backend/college/search/department/", "name": "按主管部门筛选院校"},
-             {"url": "/backend/college/search/level/", "name": "按办学层次筛选院校"},
-             {"url": "/backend/college/search/class/", "name": "按办学类别筛选院校"},
+             {"url": "/backend/college/pick/department/", "name": "按 主管部门 筛选院校"},
+             {"url": "/backend/college/pick/level/", "name": "按 办学层次 筛选院校"},
+             {"url": "/backend/college/pick/class/", "name": "按 办学类别 筛选院校"},
          ]},
-        {"url": "#", "name": "按类别筛选院校", "drop_down": [
-             {"url": "/backend/college/search/b/211/", "name": "211工程院校"},
-             {"url": "/backend/college/search/b/985/", "name": "985工程院校"},
-             {"url": "/backend/college/search/b/985_platform/", "name": "985平台院校"},
-             {"url": "/backend/college/search/b/vice_ministry/", "name": "副部级院校"},
-             {"url": "/backend/college/search/b/double_first/", "name": "双一流院校"},
-             {"url": "/backend/college/search/b/cancelled/", "name": "已取消院校"},
+        {"url": "#", "name": "按 类别 筛选院校", "drop_down": [
+             {"url": "/backend/college/search/211/", "name": "211工程院校"},
+             {"url": "/backend/college/search/985/", "name": "985工程院校"},
+             {"url": "/backend/college/search/985p/", "name": "985平台院校"},
+             {"url": "/backend/college/search/vice_ministry/", "name": "副部级院校"},
+             {"url": "/backend/college/search/double_first/", "name": "双一流院校"},
+             {"url": "/backend/college/search/cancelled/", "name": "已取消院校"},
          ]},
      ]},
     {"url": "/backend/college/add/", "name": "添加院校", "active": False},
@@ -47,44 +48,46 @@ SIDEBAR_URL = [
 ]
 
 
-def index(request):
+def index(request, param="", digit=""):
     """
 
-    :param request:
     :return:
     """
-    model_fields = ["#", "院校名称", "标识码", "主管部门", "省", "市", "层次",
+    model_fields = ["#", "院校名称", "标识码", "主管部门", "片区", "省", "市", "层次",
                     "类别", "副部级", "211", "985", "985平台", "双一流",
                     "成立时间", "注销时间", "备注", "已撤销", "合并后", "修改", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
-    urls[0]["active"] = True
+    if param != "":
+        param += "/" if digit == "" else "/" + digit + "/"
+        urls[1]["active"] = True
+    else:
+        urls[0]["active"] = True
     return render_to_response("backend/college/list.html",
                               {
                                   "self": request.user,
                                   "fields": model_fields,
                                   "urls": urls,
-                                  "file_delete_url": "/backend/college/delete/",
-                                  "get_all_college_url": "/backend/college/retrieve/"
+                                  "college_delete_url": "/backend/college/delete/",
+                                  "college_batch_delete_url": "/backend/college/batch_delete/",
+                                  "get_all_college_url": "/backend/college/retrieve/"+param
                               },
                               context_instance=RequestContext(request))
 
 
-def get_colleges(request, param=None):
+def format_colleges(colleges):
     """
     获取所有院校信息
     :return: json
     """
-    colleges = College.get_all_colleges()
-    if param:
-        colleges = colleges.filter(is_211=True)
     return_dict = {"data": []}
     i = 1
     for college in colleges:
         return_dict["data"].append([
-            i,
+            str(i)+'  <input value="' + str(college.id) + '" name="college_checkbox" type="checkbox"/>',
             college.name_cn,
             college.id_code,
             college.department.name_cn,
+            college.area,
             college.province,
             college.city,
             college.edu_level.name_cn,
@@ -104,63 +107,123 @@ def get_colleges(request, param=None):
             "' href='javascript:href_ajax(" + str(college.id) + ")'" +
             " onclick=\"return confirm('确认删除" + college.name_cn + "？')\">删除</a>"])
         i += 1
+    return return_dict
+
+
+def retrieve_colleges(request, param="", digit=""):
+    """
+    获取所有院校信息
+    :return: json
+    """
+    colleges = College.get_all_colleges()  # 全部院校
+    bool_switch = {
+        "": colleges,
+        "211": colleges.filter(is_211=True),  # 参数为211，则筛选出211院校
+        "985": colleges.filter(is_985=True),  # 参数为985，则筛选出985院校
+        "985p": colleges.filter(is_985_platform=True),  # 参数为985p，则筛选出985平台院校
+        "vice_ministry": colleges.filter(is_vice_ministry=True),  # 参数为...，则筛选出副部级院校
+        "double_first": colleges.filter(is_double_first_class=True),  # 参数为...，则筛选出双一流院校
+        "cancelled": colleges.filter(is_cancelled=True)}  # 参数为...，则筛选出已撤销院校
+    try:
+        if digit == "":
+            colleges = bool_switch[param]  # 选择
+        else:
+            foreign_switch = {
+                "department": colleges.filter(department_id=int(digit)),
+                "level": colleges.filter(edu_level_id=int(digit)),  # 参数为211，则筛选出211院校
+                "class": colleges.filter(edu_class_id=int(digit)),  # 参数为985，则筛选出985院校
+                "nation": colleges.filter(nation_code__startswith=digit),  # 参数为985p，则筛选出985平台院校
+                "area": colleges.filter(area=Area.objects.get(id=int(digit)).name_cn)}
+            colleges = foreign_switch[param]  # 选择
+    except KeyError:
+        logger.warning("错误访问: "+request.path)
+        colleges = []
+    return_dict = format_colleges(colleges)  # 格式化院校信息
+    logger.info("数据库访问次数: "+str(len(connection.queries)))
     return HttpResponse(json.dumps(return_dict))
 
 
-def search(request, param):
+def college_search_pick(request, param):
     """
-
+    筛选院校
     :return:
     """
-    print(param)
-    model_fields = ["#", "院校名称", "标识码", "主管部门", "省", "市", "层次",
-                    "类别", "副部级", "211", "985", "985平台", "双一流",
-                    "成立时间", "注销时间", "备注", "已撤销", "合并后", "修改", "删除"]
+    model_fields = {"foreign_key": [], "nation": []}
+    if param == "department":
+        if request.method == "POST":
+            return HttpResponseRedirect("/backend/college/search/department/" + request.POST["department"]+"/")
+        temp = {"name": "主管部门", "field": "department", "fields": Department.objects.all().order_by("name_cn")}
+        model_fields["foreign_key"].append(temp)  # 记录到foreign_key下
+    elif param == "level":
+        if request.method == "POST":
+            return HttpResponseRedirect("/backend/college/search/level/" + request.POST["edu_level"]+"/")
+        temp = {"name": "办学层次", "field": "edu_level", "fields": EduLevel.objects.all().order_by("name_cn")}
+        model_fields["foreign_key"].append(temp)  # 记录到foreign_key下
+    elif param == "class":
+        if request.method == "POST":
+            return HttpResponseRedirect("/backend/college/search/class/" + request.POST["edu_class"]+"/")
+        temp = {"name": "办学类型", "field": "edu_class", "fields": EduClass.objects.all().order_by("name_cn")}
+        model_fields["foreign_key"].append(temp)  # 记录到foreign_key下
+    elif param == "nation":
+        if request.method == "POST":
+            province = request.POST.get("province", "")
+            city = request.POST.get("city", "")
+            if city != "":
+                return HttpResponseRedirect("/backend/college/search/nation/" + city[:4] + "/")
+            elif province != "":
+                return HttpResponseRedirect("/backend/college/search/nation/" + province[:2] + "/")
+        model_fields["nation"] = [{"name": "所在地（省级）", "field": "province"},
+                                  {"name": "所在地（市级）", "field": "city"}]
+    elif param == "area":
+        if request.method == "POST":
+            return HttpResponseRedirect("/backend/college/search/area/" + request.POST["area"] + "/")
+        temp = {"name": "片区", "field": "area", "fields": Area.objects.filter(is_index=True)}
+        model_fields["foreign_key"].append(temp)  # 记录到foreign_key下
     urls = copy.deepcopy(SIDEBAR_URL)
-    urls[0]["active"] = True
-    return render_to_response("backend/college/list.html",
+    urls[1]["active"] = True
+    return render_to_response("backend/college/pick.html",
                               {
                                   "self": request.user,
                                   "fields": model_fields,
                                   "urls": urls,
                                   "file_delete_url": "/backend/college/delete/",
-                                  "get_all_college_url": "/backend/college/retrieve/"+param+"/"
+                                  "get_all_college_url": "/backend/college/retrieve/"+param
                               },
                               context_instance=RequestContext(request))
 
 
 def college_classification(obj):
     """
-
+    为添加院校和修改院校的页面渲染准备数据
     :return:
     """
     fields_dict = {"char": [], "boolean": [], "foreign_key": [], "nation": [], "time": []}
-    for field in College_model._meta.fields:
+    for field in College_model._meta.fields:  # 遍历院校数据库中每个字段
         _field = str(field).split(".")[2]
-        temp = {"name": field.verbose_name,
-                "field": _field,
-                "value": obj.get(_field, "")}
-        if type(field).__name__ == "CharField":
+        temp = {"name": field.verbose_name,  # 字段中文名
+                "field": _field,  # 字段英文名
+                "value": obj.get(_field, "")}  # 某条记录的，该字段的，值
+        if type(field).__name__ == "CharField":  # @@@第一类，字符串
             temp["value"] = temp["value"] if temp["value"] else ""
-            if temp["field"] == "area" or temp["field"] == "nation_code":
+            if temp["field"] == "area" or temp["field"] == "nation_code":  # 抛弃这两个数据
                 continue
-            elif temp["field"] == "province" or temp["field"] == "city":
+            elif temp["field"] == "province" or temp["field"] == "city":  # 记录省市数据到nation下
                 fields_dict["nation"].append(temp)
             else:
-                fields_dict["char"].append(temp)
-        elif type(field).__name__ == "DateField":
-            temp["value"] = temp["value"].strftime("%Y-%m-%d") if temp["value"] else ""
-            fields_dict["time"].append(temp)
-        elif type(field).__name__ == "BooleanField":
+                fields_dict["char"].append(temp)  # 其他字符串数据到char下
+        elif type(field).__name__ == "DateField":  # @@@第二类，日期
+            temp["value"] = temp["value"].strftime("%Y-%m-%d") if temp["value"] else ""  # 格式化时间
+            fields_dict["time"].append(temp)  # 记录到time下
+        elif type(field).__name__ == "BooleanField":  # @@@第三类，布尔数据
             temp["value"] = "checked" if temp["value"] else ""
             fields_dict["boolean"].append(temp)
-        elif type(field).__name__ == "ForeignKey":
+        elif type(field).__name__ == "ForeignKey":  # @@@第四类，外键
             if temp["field"] == "department":
-                if _field+"_id" in obj:
-                    temp["value"] = Department.objects.get(id=obj[_field+"_id"])
-                    temp["fields"] = Department.objects.exclude(id=obj[_field+"_id"])
+                if _field+"_id" in obj:  # 如果传入了某条记录
+                    temp["value"] = Department.objects.get(id=obj[_field+"_id"])  # 该记录的外键值
+                    temp["fields"] = Department.objects.exclude(id=obj[_field+"_id"])  # 外键其他值
                 else:
-                    temp["fields"] = Department.objects.all().order_by("name_cn")
+                    temp["fields"] = Department.objects.all().order_by("name_cn")  # 外键所有值
             elif temp["field"] == "edu_level":
                 if _field+"_id" in obj:
                     temp["value"] = EduLevel.objects.get(id=obj[_field+"_id"])
@@ -173,7 +236,7 @@ def college_classification(obj):
                     temp["fields"] = EduClass.objects.exclude(id=obj[_field+"_id"])
                 else:
                     temp["fields"] = EduClass.objects.all().order_by("name_cn")
-            fields_dict["foreign_key"].append(temp)
+            fields_dict["foreign_key"].append(temp)  # 记录到foreign_key下
     return fields_dict
 
 
@@ -193,7 +256,9 @@ def add_college(request):
                 edu_level=EduLevel.objects.get(id=int(request.POST["edu_level"])),
                 edu_class=EduClass.objects.get(id=int(request.POST["edu_class"])),
                 city=nation.city,
+                area=Area.objects.get(nation_code_2=nation.code[:2]).name_cn,
                 province=Nation.objects.get(id=nation.parent).province,
+                nation_code=nation.code,
                 is_vice_ministry=True if "is_vice_ministry" in request.POST else False,
                 is_211=True if "is_211" in request.POST else False,
                 is_985=True if "is_985" in request.POST else False,
@@ -226,12 +291,12 @@ def add_college(request):
 
 def modify_college(request, college_id):
     """
-
+    修改一所院校
     :param request:
     :param college_id:
     :return:
     """
-    college = College_model.objects.get(id=college_id)
+    college = College_model.objects.get(id=college_id)  # 根据id获取院校
     if request.method == "POST":
         try:
             nation = Nation.objects.get(code=request.POST["city"])
@@ -241,6 +306,7 @@ def modify_college(request, college_id):
             college.edu_level = EduLevel.objects.get(id=int(request.POST["edu_level"]))
             college.edu_class = EduClass.objects.get(id=int(request.POST["edu_class"]))
             college.city = nation.city
+            college.area = Area.objects.get(nation_code_2=nation.code[:2]).name_cn
             college.province = Nation.objects.get(id=nation.parent).province
             college.is_vice_ministry = True if "is_vice_ministry" in request.POST else False
             college.is_211 = True if "is_211" in request.POST else False
@@ -252,7 +318,7 @@ def modify_college(request, college_id):
             college.cancel_time = get_date_from_post(request.POST.get("cancel_time", ""))
             college.note = request.POST.get("note", "")
             college.transfer_to = request.POST.get("transfer_to", "")
-            college.save()
+            college.save()  # 保存
             messages.success(request, "修改成功")
         except IntegrityError as e:  # 处理重复添加错误
             logger.error(str(e))
@@ -272,9 +338,27 @@ def modify_college(request, college_id):
         }, context_instance=RequestContext(request))
 
 
+def batch_delete_college(request):
+    """
+    批量删除院校
+    :param request:
+    :return:
+    """
+    return_dict = {}
+    try:
+        delete_list = request.POST.getlist("college_ids[]")
+        College_model.objects.filter(id__in=delete_list).delete()
+        return_dict["success"] = "删除成功"
+    except Exception as e:
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        return_dict["error"] = "删除失败"
+    return HttpResponse(json.dumps(return_dict))
+
+
 def delete_college(request):
     """
-
+    删除一所院校
     :param request:
     :return:
     """
@@ -290,6 +374,11 @@ def delete_college(request):
 
 
 def get_date_from_post(content):
+    """
+    从post获取date数据并转换
+    :param content:
+    :return:
+    """
     if content != "":
         return datetime.datetime.strptime(content, "%Y-%m-%d")
     else:
@@ -382,14 +471,15 @@ def import_college(request):
                 if f in head:
                     temp_dict[f] = head.index(f)  # 找到数据库字段对应在excel的位置
             for record in body:
+                nation_code = get_nation_code(record[temp_dict[model_fields[6]]])
                 College_model.objects.create(  # 创建记录
                     name_cn=empty_is_empty(record[temp_dict[model_fields[1]]]),
                     id_code=empty_is_empty(record[temp_dict[model_fields[2]]]),
                     department=get_obj_or_insert_obj(Department, empty_is_empty(record[temp_dict[model_fields[3]]])),
-                    area=empty_is_empty(record[temp_dict[model_fields[4]]]),
+                    area=Area.objects.get(nation_code_2=nation_code[:2]).name_cn,
                     province=empty_is_empty(record[temp_dict[model_fields[5]]]),
                     city=empty_is_empty(record[temp_dict[model_fields[6]]]),
-                    nation_code=get_nation_code(record[temp_dict[model_fields[6]]]),
+                    nation_code=nation_code,
                     edu_level=get_obj_or_insert_obj(EduLevel, empty_is_empty(record[temp_dict[model_fields[8]]])),
                     edu_class=get_obj_or_insert_obj(EduClass, empty_is_empty(record[temp_dict[model_fields[9]]])),
                     is_vice_ministry=empty_is_false(record[temp_dict[model_fields[10]]]),
@@ -415,7 +505,7 @@ def import_college(request):
     return render_to_response("backend/college/import.html",
                               {
                                   "self": request.user,
-                                  "fields": model_fields[1:7] + model_fields[8:],
+                                  "fields": model_fields[1:4] + model_fields[5:7] + model_fields[8:],
                                   "urls": urls,
                                   "file_upload_url": "/backend/college/import/"
                               },

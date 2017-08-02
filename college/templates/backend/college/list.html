@@ -24,6 +24,8 @@
             </div>
         </div>
     </div>
+<input class="btn btn-success" type="button" id="all_checked" name="all_checked" value="全选" onclick="checkedAll()" />
+<input class="btn btn-danger" id="id_batch_delete" name="batch_delete" type="button" onclick="return batchdel()" value="批量删除"/>
 </div>
 
 <script src="/static/js/dataTables/jquery.dataTables.js"></script>
@@ -34,24 +36,23 @@ $(document).ready(function () {
         "ajax": '{{ get_all_college_url }}'
     } );
 });
-function href_ajax(_id) {
-    function getCookie(name) {
-        var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)"); //正则匹配
-        if(arr=document.cookie.match(reg)){
-          return unescape(arr[2]);
-        }
-        else{
-         return null;
-        }
+function getCookie(name) {
+    var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)"); //正则匹配
+    if (arr = document.cookie.match(reg)) {
+        return unescape(arr[2]);
     }
+    else {
+        return null;
+    }
+}
+function href_ajax(_id) {
     $.ajax({
         type: "post",
-        url: "{{ file_delete_url }}",
+        url: "{{ college_delete_url }}",
         data: {"college_id": _id, "csrfmiddlewaretoken": getCookie('csrftoken')},
         dataType:"json",
         success: function(data)  {
             var _table = $('#dataTables-example').DataTable();
-            $('#alert-success').css("display", "block");
             _table.row($("#row_"+_id).parents('tr')).remove().draw();
             if(data["success"]){
                 $('#messages').append('<div class="alert alert-success"> <a class="close" data-dismiss="alert">×</a>'+data["success"]+' </div>');
@@ -60,6 +61,69 @@ function href_ajax(_id) {
             }
         }
     });
+}
+
+function batchdel()
+{
+    var checkbox = document.getElementsByName("college_checkbox");
+    var number = 0;
+    var temp = new Array();
+    if (checkbox.length != 0){
+        for(i=0;i<checkbox.length;i++){
+            if (checkbox[i].checked == true){
+                temp.push(checkbox[i].value);
+                number++;
+            }
+        }
+        if (number == 0){
+            alert("请选择");
+        }else{
+            var txt='确定删除这'+number+'项吗?';
+            if (confirm(txt)){
+                $.ajax({
+                    type: "post",
+                    url: "{{ college_batch_delete_url }}",
+                    data: {"college_ids": temp, "csrfmiddlewaretoken": getCookie('csrftoken')},
+                    dataType:"json",
+                    success: function(data)  {
+                        var _table = $('#dataTables-example').DataTable();
+                        for(i=0;i<temp.length;i++){
+                            _table.row($("#row_"+temp[i]).parents('tr')).remove();
+                        }
+                        _table.draw();
+                        if(data["success"]){
+                            $('#messages').append('<div class="alert alert-success"> <a class="close" data-dismiss="alert">×</a>'+data["success"]+' </div>');
+                        }else{
+                            $('#messages').append('<div class="alert alert-danger"> <a class="close" data-dismiss="alert">×</a>'+data["error"]+' </div>')
+                        }
+                    }
+                });
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+}
+function checkedAll()
+{
+    var allCheckVal = document.getElementById('all_checked').value;
+    var checked = false;
+    if (allCheckVal == '全选')
+        {
+            document.getElementById('all_checked').value = '取消全选';
+            checked = true;
+        }
+    else
+        {
+            document.getElementById('all_checked').value = '全选';
+            checked = false;
+        }
+    var allcheck=document.getElementsByName("college_checkbox");
+    for(var i = 0;i<allcheck.length;i++)
+        {
+            allcheck[i].checked = checked;
+        }
 }
 </script>
 

@@ -34,4 +34,5 @@ urlpatterns = [
     url(r'^college/delete/$', college.delete_college),
     url(r'^college/batch_delete/$', college.batch_delete_college),
     url(r'^college/import/$', college.import_college),
+    url(r'^college/clean/$', college.clean_college),
 ]

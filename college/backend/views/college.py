@@ -507,6 +507,24 @@ def import_college(request):
                                   "self": request.user,
                                   "fields": model_fields[1:4] + model_fields[5:7] + model_fields[8:],
                                   "urls": urls,
-                                  "file_upload_url": "/backend/college/import/"
+                                  "file_upload_url": "/backend/college/import/",
+                                  "college_clean_url": "/backend/college/clean/",
                               },
                               context_instance=RequestContext(request))
+
+
+def clean_college(request):
+    """
+    院校清空
+    :param request:
+    :return:
+    """
+    return_dict = {}
+    try:
+        College_model.objects.all().delete()
+        return_dict["success"] = "院校清空成功"
+    except Exception as e:
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        return_dict["error"] = "院校清空失败"
+    return HttpResponse(json.dumps(return_dict))

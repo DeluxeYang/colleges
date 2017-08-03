@@ -20,5 +20,29 @@
             </div>
         </div>
         {% include "backend/file_upload.html" %}
+        <input class="btn btn-danger" id="id_clean"
+               name="clean" type="button"
+               onclick="return college_clean()" value="清空院校"/>
+        <script>
+        function college_clean() {
+            var txt='确定清空所有院校数据吗';
+            if (confirm(txt)) {
+                $.ajax({
+                    type: "get",
+                    url: "{{ college_clean_url }}",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data["success"]) {
+                            $('#messages').append('<div class="alert alert-success"> <a class="close" data-dismiss="alert">×</a>' + data["success"] + ' </div>');
+                        } else {
+                            $('#messages').append('<div class="alert alert-danger"> <a class="close" data-dismiss="alert">×</a>' + data["error"] + ' </div>')
+                        }
+                    }
+                });
+            }else{
+                return false;
+            }
+        }
+        </script>
     </div>
 {% endblock %}

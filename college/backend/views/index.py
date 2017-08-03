@@ -18,4 +18,4 @@ def index(request):
     return render_to_response("backend/base.html",
                               {"self": request.user,
                                "urls": directions},
-                              context=RequestContext(request))
+                              context_instance=RequestContext(request))

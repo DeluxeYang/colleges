@@ -83,7 +83,8 @@ def format_colleges(colleges):
     i = 1
     for college in colleges:
         return_dict["data"].append([
-            str(i)+'  <input value="' + str(college.id) + '" name="college_checkbox" type="checkbox"/>',
+            '<label>' + str(i) + '<input value="' + str(college.id) +
+            '" name="college_checkbox" type="checkbox"/></label>',
             college.name_cn,
             college.id_code,
             college.department.name_cn,

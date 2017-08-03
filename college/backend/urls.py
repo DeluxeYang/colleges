@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'^college/import/$', college.import_college),
     url(r'^college/clean/$', college.clean_college),
 
+    url(r'^news/$', news.index),
     url(r'^news/add/$', news.add_news),
+    url(r'^news/image_upload/$', news.image_upload),
 
 ]

@@ -186,20 +186,20 @@ class NewsTag(models.Model):
 
 class News(models.Model):
     user = models.ForeignKey(User, related_name='news')  # 发布用户
-    college = models.ForeignKey(College, related_name='news')  # 新闻所属学校
-    tag = models.ManyToManyField(NewsTag, through='NewsAndTag', related_name='news')  # 所属标签
-    title = models.CharField(max_length=255, unique=True)  # 标题
-    keywords = models.CharField(max_length=100, null=True, blank=True)  # 关键字
-    description = models.TextField(null=True, blank=True)  # 描述
-    content = models.TextField(null=True, blank=True)  # 内容
-    is_published = models.BooleanField(default=False)  # 是否已发布
-    comment_count = models.IntegerField(default=0)  # 评论数
-    is_allow_comments = models.BooleanField(default=True)  # 是否允许评论
-    is_stick_top = models.BooleanField(default=False)  # 是否置顶
-    is_bold = models.BooleanField(default=False)  # 是否加粗
+    tag = models.ManyToManyField(NewsTag, through='NewsAndTag', related_name='news', verbose_name="标签")  # 所属标签
+    college_id_code = models.CharField(max_length=30, null=True, blank=True, verbose_name="相关院校")  # 新闻所属学校
+    title = models.CharField(max_length=255, unique=True, verbose_name="标题")  # 标题
+    keywords = models.CharField(max_length=100, null=True, blank=True, verbose_name="关键字")  # 关键字
+    abstract = models.TextField(null=True, blank=True, verbose_name="摘要")  # 摘要
+    content = models.TextField(null=True, blank=True, verbose_name="内容")  # 内容
+    is_published = models.BooleanField(default=False, verbose_name="已发布")  # 是否已发布
+    is_allow_comments = models.BooleanField(default=True, verbose_name="允许评论")  # 是否允许评论
+    is_stick_top = models.BooleanField(default=False, verbose_name="置顶")  # 是否置顶
+    is_bold = models.BooleanField(default=False, verbose_name="加粗")  # 是否加粗
     create_time = models.DateTimeField(null=True, blank=True)  # 创建时间
     update_time = models.DateTimeField(null=True, blank=True)  # 更新时间
     publish_time = models.DateTimeField(null=True, blank=True)  # 发布时间
+    comment_count = models.IntegerField(default=0)  # 评论数
 
     class Meta:
         db_table = 'news'
@@ -212,6 +212,7 @@ class News(models.Model):
             self.create_time = datetime.datetime.now()
         else:
             self.update_time = datetime.datetime.now()
+        self.publish_time = datetime.datetime.now() if self.is_published else None
         super().save(*args, **kwargs)
 
 

@@ -241,6 +241,9 @@ def college_classification(obj):
     return fields_dict
 
 
+add_college_classification = college_classification(obj={})
+
+
 def add_college(request):
     """
     添加一所院校
@@ -280,12 +283,11 @@ def add_college(request):
             logger.error(str(e))
             logger.error(traceback.format_exc())
             messages.error(request, "添加失败，请检查添加的数据")
-    fields_dict = college_classification(obj={})
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[2]["active"] = True
     return render_to_response("backend/college/add.html", {
             "self": request.user,
-            "fields": fields_dict,
+            "fields": add_college_classification,
             "urls": urls
         }, context_instance=RequestContext(request))
 

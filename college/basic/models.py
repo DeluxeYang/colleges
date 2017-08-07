@@ -187,7 +187,7 @@ class NewsTag(models.Model):
 class News(models.Model):
     user = models.ForeignKey(User, related_name='news')  # 发布用户
     tag = models.ManyToManyField(NewsTag, through='NewsAndTag', related_name='news', verbose_name="标签")  # 所属标签
-    college_id_code = models.CharField(max_length=30, null=True, blank=True, verbose_name="相关院校")  # 新闻所属学校
+    college = models.ManyToManyField(College, through='NewsAndCollege', related_name='news', verbose_name="相关院校")
     title = models.CharField(max_length=255, unique=True, verbose_name="标题")  # 标题
     keywords = models.CharField(max_length=100, null=True, blank=True, verbose_name="关键字")  # 关键字
     abstract = models.TextField(null=True, blank=True, verbose_name="摘要")  # 摘要
@@ -214,6 +214,14 @@ class News(models.Model):
             self.update_time = datetime.datetime.now()
         self.publish_time = datetime.datetime.now() if self.is_published else None
         super().save(*args, **kwargs)
+
+
+class NewsAndCollege(models.Model):
+    news = models.ForeignKey(News, related_name='news_and_college')
+    college = models.ForeignKey(College, related_name='news_and_college')
+
+    class Meta:
+        db_table = 'news_and_college'
 
 
 class NewsAndTag(models.Model):

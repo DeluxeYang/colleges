@@ -47,3 +47,13 @@ def get_college_by_id_or_name(college):
     return _college
 
 
+def get_colleges_id_name_by_nation(nation_code):
+    """
+    根据nation_code获取院校id和名称
+    :return:
+    """
+    return_list = []
+    colleges = College.objects.filter(nation_code__startswith=nation_code)
+    for college in colleges:
+        return_list.append({"id": college.id, "name_cn": college.name_cn})
+    return return_list

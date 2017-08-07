@@ -15,7 +15,7 @@ class QtsAuthentication(object):
     def process_request(request):
         if 'api' in request.path:
             # 如果当前用户没有登录,则只能访问登录和注册的接口,api/login/和api/register
-            if 'username' not in request.session:
+            if str(request.user) == "AnonymousUser":
                 # 未登录用户只能访问登录和注册接口,否则返回未登录{code:101, msg:未登录}
                 if request.path != '/api/login/' and request.path != '/api/register/' and \
                                 request.path != '/api/globalscore/':

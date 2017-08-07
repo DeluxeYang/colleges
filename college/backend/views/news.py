@@ -43,24 +43,33 @@ def news_classification(obj):
     为添加新闻和修改新闻的页面渲染准备数据
     :return:
     """
-    fields_dict = {"char": [], "boolean": [], "many_to_many": []}
+    fields_dict = {"char": [], "boolean": [], "many_to_many": [], "text": [],
+                   "tag": {"name": "新闻标签", "field": "tag"},
+                   "nation": [{"name": "省级",  "field": "province"}, {"name": "市级",  "field": "city"}]}
     for field in News._meta.fields:  # 遍历院校数据库中每个字段
         _field = str(field).split(".")[2]
         temp = {"name": field.verbose_name,  # 字段中文名
-                "field": _field,  # 字段英文名
-                "value": obj.get(_field, "")}  # 某条记录的，该字段的，值
+                "field": _field,  # 字段英文名  # 某条记录的，该字段的，值
+                "value": obj.get(_field, "") if obj.get(_field, "") else ""}
         if type(field).__name__ == "CharField":  # @@@第一类，字符串
-            temp["value"] = temp["value"] if temp["value"] else ""
+            if _field == "college_id_code":
+                continue
             fields_dict["char"].append(temp)  # 其他字符串数据到char下
+        elif type(field).__name__ == "TextField":  # @@@第2类，布尔数据
+            if _field == "abstract":
+                fields_dict["text"].append(temp)
+            elif _field == "content":
+                fields_dict["md"] = temp
         elif type(field).__name__ == "BooleanField":  # @@@第三类，布尔数据
-            temp["value"] = "checked" if temp["value"] else ""
             fields_dict["boolean"].append(temp)
     news_and_tags = NewsAndTag.objects.filter(news_id=int(obj.get("id", 0)))
     checked_tags = {}
     for _tag in news_and_tags:
         checked_tags[_tag.tag.title] = 1
-    for tag in NewsTag.objects.all():
-        temp = {"title": tag.title}
+    news_tags = NewsTag.objects.all()
+    fields_dict["tag"]["size"] = len(news_tags)
+    for tag in news_tags:
+        temp = {"title": tag.title, "id": tag.id}
         if tag.title in checked_tags:
             temp["checked"] = 1
         fields_dict["many_to_many"].append(temp)
@@ -83,7 +92,8 @@ def add_news(request):
     return render_to_response("backend/news/add.html", {
             "self": request.user,
             "fields": add_news_classification,
-            "urls": urls
+            "urls": urls,
+            "get_colleges_by_nation_url": "/api/college/by/nation/"
         }, context_instance=RequestContext(request))
 
 

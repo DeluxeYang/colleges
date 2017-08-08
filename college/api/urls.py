@@ -14,9 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import url
-from api.views import college
+from api.views import college, news
 
 
 urlpatterns = [
     url(r'^college/by/nation/$', college.get_colleges_by_nation),
+
+    url(r'^news/image_upload/$', news.image_upload),
 ]

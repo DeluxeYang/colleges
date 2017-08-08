@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            添加新闻 <small></small>
+            添加院校 <small>填写全部信息</small>
         </h1>
     </div>
 </div>
@@ -21,16 +21,15 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-lg-12">
-                        <form role="form" method="post" id="news_add_form">
+                        <form role="form" method="post">
                             {% csrf_token %}
                             {% for field in fields.char %}
                                 <div class="form-group">
                                     <label>{{ field.name }}</label>
-                                    <input class="form-control" name="{{ field.field }}">
+                                    <input class="form-control" name="{{ field.field }}" value="{{ field.value }}">
                                 </div>
                             {% endfor %}
 <!-- 选择相关学校 -->
-                            <input id="id_colleges" style="display: none" name="colleges">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
                                     <!-- 按钮触发模态框 -->
@@ -39,7 +38,14 @@
                                     </div>
                                 </div>
                                 <div class="panel-body" style="padding-bottom: 0;">
-                                    <div id="college_container"></div>
+                                    <div id="college_container">
+                                        {% for college in fields.college %}
+                                            <div class="alert alert-tag" style="display:inline-block" data-tag_id="{{ college.id }}">
+                                                <a class="close" data-dismiss="alert">×</a>
+                                                {{ college.name_cn }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
 
                                     <!-- 模态框（Modal） -->
                                     <div class="modal fade" id="collegeModal" tabindex="-1" role="dialog" aria-labelledby="collegeModalLabel" aria-hidden="true">
@@ -85,7 +91,6 @@
 <!-- end选择相关学校 -->
 
 <!-- 选择标签 -->
-                            <input id="id_tags"  style="display: none" name="tags">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
                                     <!-- 按钮触发模态框 -->
@@ -94,7 +99,16 @@
                                     </div>
                                 </div>
                                 <div class="panel-body" style="padding-bottom: 0;">
-                                    <div id="tag_container"></div>
+                                    <div id="tag_container">
+                                        {% for tag in fields.many_to_many %}
+                                            {% if tag.checked %}
+                                            <div class="alert alert-tag" style="display:inline-block" data-tag_id="{{ tag.id }}">
+                                                <a class="close" data-dismiss="alert">×</a>
+                                                {{ tag.title }}
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
 
                                     <!-- 模态框（Modal） -->
                                     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -137,23 +151,24 @@
                             {% for field in fields.text %}
                                 <div class="form-group">
                                     <label>{{ field.name }}</label>
-                                    <textarea class="form-control" rows="3" name="{{ field.field }}"></textarea>
+                                    <textarea class="form-control" rows="3" name="{{ field.field }}">{{ field.value }}</textarea>
                                 </div>
                             {% endfor %}
                             <div id="test-editormd">
                                 <textarea id="test-editormd-markdown-doc"
-                                          name="test-editormd-markdown-doc" style="display:none;">as</textarea>
+                                          name="test-editormd-markdown-doc" style="display:none;">{{ fields.md_doc }}</textarea>
                             </div>
                             {% for field in fields.boolean %}
                                 <div class="form-group">
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" value="" name="{{ field.field }}">{{ field.name }}
+                                            <input type="checkbox" value="" {{ field.value }} name="{{ field.field }}">{{ field.name }}
                                         </label>
                                     </div>
                                 </div>
                             {% endfor %}
-                            <input type="submit" id="submit" value="提交" class="btn btn-default" />
+                            <div id="test-editormd"></div>
+                            <input type="submit" value="提交" class="btn btn-default" />
                         </form>
                     </div>
                 </div>

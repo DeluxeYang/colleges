@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from basic.models import News, NewsTag, NewsAndTag, NewsComment
+from basic.models import News, NewsTag, NewsAndTag, NewsComment, NewsAndCollege
 from basic.views.College import *
+from basic.utils.logger import logger
 
 
 def get_all_news():
@@ -125,44 +126,49 @@ def get_all_comments_of_one_news(news):
     return comments
 
 
-def add_news(news, tags):
+def create_news(news, tags, colleges):
     """
 
     :param news:
-    :param tags:
+    :param tags: [id,id]
+    :param colleges: [id,id]
     :return:
     """
     _news = News.objects.create(
         user=news["user"],
-        college_id_code=get_college_by_id_or_name(news["college"]).id_code,
         title=news["title"],
-        keywords=news["keyword"],
+        keywords=news["keywords"],
         abstract=news["abstract"],
-        content=news["content"],
+        md_doc=news["md_doc"],
+        html_code=news["html_code"],
         is_published=news["is_published"],
         is_allow_comments=news["is_allow_comments"],
         is_stick_top=news["is_stick_top"],
         is_bold=news["is_bold"])
     for tag in tags:
         NewsAndTag.objects.create(news=_news,
-                                  tag=get_tag_by_id_or_title(tag))
+                                  tag=get_tag_by_id(int(tag)))
+    for college in colleges:
+        NewsAndCollege.objects.create(news=_news,
+                                      college=get_college_by_id(int(college)))
     return _news
 
 
-def update_news(news, tags):
+def update_news(news, tags, colleges):
     """
 
     :param news:
     :param tags:
+    :param colleges:
     :return:
     """
     _news = get_news_by_id_or_title(news)
     _news.user = news["user"]
-    _news.college_id_code = get_college_by_id_or_name(news["college"]).id_code
     _news.title = news["title"]
     _news.keywords = news["keywords"]
     _news.abstract = news["abstract"]
-    _news.content = news["content"]
+    _news.md_doc = news["md_doc"],
+    _news.html_code = news["html_code"],
     _news.is_published = news["is_published"]
     _news.is_allow_comments = news["is_allow_comments"]
     _news.is_stick_top = news["is_stick_top"]
@@ -172,6 +178,10 @@ def update_news(news, tags):
     for tag in tags:
         NewsAndTag.objects.create(news=_news,
                                   tag=get_tag_by_id_or_title(tag))
+    NewsAndCollege.objects.filter(news=_news).delete()
+    for college in colleges:
+        NewsAndCollege.objects.create(news=_news,
+                                      college=get_college_by_id_or_name(college))
     return _news
 
 
@@ -183,5 +193,6 @@ def delete_news(news):
     """
     _news = get_news_by_id_or_title(news)
     NewsAndTag.objects.filter(news=_news).delete()
+    NewsAndCollege.objects.filter(news=_news).delete()
     _news.delete()
     return _news

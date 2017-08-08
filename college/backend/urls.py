@@ -38,6 +38,6 @@ urlpatterns = [
 
     url(r'^news/$', news.index),
     url(r'^news/add/$', news.add_news),
-    url(r'^news/image_upload/$', news.image_upload),
+    url(r'^news/modify/(?P<news_id>[0-9]+)/$', news.modify_news),
 
 ]

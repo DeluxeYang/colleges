@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'basic',
     'backend',
     'api',
+    'django_cleanup',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -35,9 +35,17 @@ urlpatterns = [
     url(r'^college/batch_delete/$', college.batch_delete_college),
     url(r'^college/import/$', college.import_college),
     url(r'^college/clean/$', college.clean_college),
-
+    # news
     url(r'^news/$', news.index),
+    url(r'^news/search/(?P<param>[a-zA-Z0-9_]+)/$', news.index),
+    url(r'^news/search/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', news.index),
+
+    url(r'^news/retrieve/$', news.retrieve_news),
+    url(r'^news/retrieve/(?P<param>[a-zA-Z0-9_]+)/$', news.retrieve_news),
+    url(r'^news/retrieve/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', news.retrieve_news),
+
     url(r'^news/add/$', news.add_news),
     url(r'^news/modify/(?P<news_id>[0-9]+)/$', news.modify_news),
-
+    url(r'^news/delete/$', news.delete_news),
+    url(r'^news/batch_delete/$', news.batch_delete_news),
 ]

@@ -2,18 +2,17 @@
 # -*- coding: utf-8 -*-
 import copy
 import json
-import datetime
 import traceback
 
-from django.views.decorators.csrf import csrf_exempt
+from django.db import connection
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.template.context import RequestContext
 
 from basic.utils.logger import logger
-from basic.models import News, NewsAndTag, NewsComment, NewsTag, NewsAndCollege
-from basic.views.News import get_news_by_id, create_news, update_news
+from basic.models import News, NewsAndTag, NewsTag, NewsAndCollege
+from basic.views.News import get_all_news, get_news_by_id, create_news, update_news
 
 SIDEBAR_URL = [
     {"url": "/backend/news/", "name": "新闻列表", "active": False},
@@ -26,18 +25,71 @@ SIDEBAR_URL = [
 ]
 
 
-def index(request):
+def index(request, param="", digit=""):
     """
 
-    :param request: 
-    :return: 
+    :return:
     """
+    model_fields = ["#", "新闻标题", "创建者", "创建时间", "编辑", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
-    urls[0]["active"] = True
-    return render_to_response("backend/base.html", {
-        "self": request.user,
-        "urls": urls
-        }, context_instance=RequestContext(request))
+    if param != "":
+        param += "/" if digit == "" else "/" + digit + "/"
+        urls[1]["active"] = True
+    else:
+        urls[0]["active"] = True
+    return render_to_response("backend/news/list.html",
+                              {
+                                  "self": request.user,
+                                  "fields": model_fields,
+                                  "urls": urls,
+                                  "news_delete_url": "/backend/news/delete/",
+                                  "news_batch_delete_url": "/backend/news/batch_delete/",
+                                  "get_all_news_url": "/backend/news/retrieve/"+param
+                              },
+                              context_instance=RequestContext(request))
+
+
+def format_news(news):
+    """
+    格式化新闻列表
+    :return: json
+    """
+    return_dict = {"data": []}
+    i = 1
+    for _news in news:
+        return_dict["data"].append([
+            '<label>' + str(i) + '<input value="' + str(_news.id) +
+            '" name="news_checkbox" type="checkbox"/></label>',
+            "<a href='/backend/news/" + str(_news.id) + "/'>" + _news.title + "</a>",
+            str(_news.user),
+            _news.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "<a href='/backend/news/modify/" + str(_news.id) + "/'>编辑</a>",
+            "<a id='row_" + str(_news.id) +
+            "' href='javascript:href_ajax(" + str(_news.id) + ")'" +
+            " onclick=\"return confirm('确认删除" + _news.title + "？')\">删除</a>"])
+        i += 1
+    return return_dict
+
+
+def retrieve_news(request, param="", digit=""):
+    """
+    获取所有院校信息
+    :return: json
+    """
+    _news = get_all_news()
+    bool_switch = {"": _news}
+    try:
+        if digit == "":
+            _news = bool_switch[param]  # 选择
+        else:
+            foreign_switch = {}
+            _news = foreign_switch[param]  # 选择
+    except KeyError:
+        logger.warning("错误访问: "+request.path)
+        _news = []
+    return_dict = format_news(_news)  # 格式化院校信息
+    logger.info("数据库访问次数: "+str(len(connection.queries)))
+    return HttpResponse(json.dumps(return_dict))
 
 
 def news_classification(obj):
@@ -61,7 +113,6 @@ def news_classification(obj):
             if _field == "abstract":
                 fields_dict["text"].append(temp)
         elif type(field).__name__ == "BooleanField":  # @@@第三类，布尔数据
-            print(_field, temp["value"])
             temp["value"] = "checked" if temp["value"] else ""
             fields_dict["boolean"].append(temp)
     news_and_tags = NewsAndTag.objects.filter(news_id=int(obj.get("id", 0)))
@@ -78,7 +129,6 @@ def news_classification(obj):
     news_and_colleges = NewsAndCollege.objects.filter(news_id=int(obj.get("id", 0)))
     for nac in news_and_colleges:
         fields_dict["college"].append({"name_cn": nac.college.name_cn, "id": nac.college.id})
-    fields_dict["md_doc"] = obj.get("md_doc", "") if obj.get("md_doc", "") else ""
     return fields_dict
 
 
@@ -130,30 +180,68 @@ def modify_news(request, news_id):
     news = get_news_by_id(news_id)
     if request.method == "POST":
         try:
-            news = {"user": request.user,
-                    "title": request.POST["title"],
-                    "keywords": request.POST["keywords"],
-                    "abstract": request.POST["abstract"],
-                    "md_doc": request.POST["test-editormd-markdown-doc"],
-                    "html_code": request.POST["test-editormd-html-code"],
-                    "is_published": True if "is_published" in request.POST else False,
-                    "is_allow_comments": True if "is_allow_comments" in request.POST else False,
-                    "is_stick_top": True if "is_stick_top" in request.POST else False,
-                    "is_bold": True if "is_bold" in request.POST else False}
+            _news = {"id": int(news_id),
+                     "user": request.user,
+                     "title": request.POST["title"],
+                     "keywords": request.POST["keywords"],
+                     "abstract": request.POST["abstract"],
+                     "md_doc": request.POST["test-editormd-markdown-doc"],
+                     "html_code": request.POST["test-editormd-html-code"],
+                     "is_published": True if "is_published" in request.POST else False,
+                     "is_allow_comments": True if "is_allow_comments" in request.POST else False,
+                     "is_stick_top": True if "is_stick_top" in request.POST else False,
+                     "is_bold": True if "is_bold" in request.POST else False}
             colleges = request.POST["colleges"].split(",") if request.POST["colleges"] != '' else []
             tags = request.POST["tags"].split(",") if request.POST["tags"] != '' else []
-            update_news(news, tags, colleges)
+            news = update_news(_news, map(int, tags), map(int, colleges))
             messages.success(request, "修改新闻成功")
         except Exception as e:
             logger.error(str(e))
+            logger.error(traceback.format_exc())
             messages.error(request, "修改新闻失败")
     modify_news_classification = news_classification(news.__dict__)
     urls = copy.deepcopy(SIDEBAR_URL)
-    urls[2]["active"] = True
+    urls[0]["active"] = True
     return render_to_response("backend/news/modify.html", {
         "self": request.user,
         "fields": modify_news_classification,
         "urls": urls,
+        "md_doc": news.md_doc,
         "get_colleges_by_nation_url": "/api/college/by/nation/",
-        "news_image_upload_url": "/api/news/image_upload/"
+        "news_image_upload_url": "/api/news/image_upload/",
     }, context_instance=RequestContext(request))
+
+
+def batch_delete_news(request):
+    """
+    批量删除院校
+    :param request:
+    :return:
+    """
+    return_dict = {}
+    try:
+        delete_list = request.POST.getlist("news_ids[]")
+        News.objects.filter(id__in=delete_list).delete()
+        return_dict["success"] = "删除成功"
+    except Exception as e:
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        return_dict["error"] = "删除失败"
+    return HttpResponse(json.dumps(return_dict))
+
+
+def delete_news(request):
+    """
+    删除一所院校
+    :param request:
+    :return:
+    """
+    return_dict = {}
+    try:
+        News.objects.get(id=int(request.POST["news_id"])).delete()
+        return_dict["success"] = "删除成功"
+    except Exception as e:
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        return_dict["error"] = "删除失败"
+    return HttpResponse(json.dumps(return_dict))

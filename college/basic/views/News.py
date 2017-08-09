@@ -162,13 +162,13 @@ def update_news(news, tags, colleges):
     :param colleges:
     :return:
     """
-    _news = get_news_by_id_or_title(news)
+    _news = get_news_by_id_or_title(news["id"])
     _news.user = news["user"]
     _news.title = news["title"]
     _news.keywords = news["keywords"]
     _news.abstract = news["abstract"]
-    _news.md_doc = news["md_doc"],
-    _news.html_code = news["html_code"],
+    _news.md_doc = news["md_doc"]
+    _news.html_code = news["html_code"]
     _news.is_published = news["is_published"]
     _news.is_allow_comments = news["is_allow_comments"]
     _news.is_stick_top = news["is_stick_top"]

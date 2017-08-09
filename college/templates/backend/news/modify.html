@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            添加院校 <small>填写全部信息</small>
+            修改新闻 <small>填写全部信息</small>
         </h1>
     </div>
 </div>
@@ -30,6 +30,7 @@
                                 </div>
                             {% endfor %}
 <!-- 选择相关学校 -->
+                            <input id="id_colleges" style="display: none" name="colleges">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
                                     <!-- 按钮触发模态框 -->
@@ -40,7 +41,7 @@
                                 <div class="panel-body" style="padding-bottom: 0;">
                                     <div id="college_container">
                                         {% for college in fields.college %}
-                                            <div class="alert alert-tag" style="display:inline-block" data-tag_id="{{ college.id }}">
+                                            <div class="alert alert-tag" style="display:inline-block" data-college_id="{{ college.id }}">
                                                 <a class="close" data-dismiss="alert">×</a>
                                                 {{ college.name_cn }}
                                             </div>
@@ -90,7 +91,7 @@
                             </div>
 <!-- end选择相关学校 -->
 
-<!-- 选择标签 -->
+<!-- 选择标签 -->             <input id="id_tags" style="display: none" name="tags">
                             <div class="panel panel-default">
                                 <div class="panel-heading">
                                     <!-- 按钮触发模态框 -->
@@ -155,8 +156,7 @@
                                 </div>
                             {% endfor %}
                             <div id="test-editormd">
-                                <textarea id="test-editormd-markdown-doc"
-                                          name="test-editormd-markdown-doc" style="display:none;">{{ fields.md_doc }}</textarea>
+                                <textarea id="test-editormd-markdown-doc" name="test-editormd-markdown-doc" style="display:none;">{{ md_doc }}</textarea>
                             </div>
                             {% for field in fields.boolean %}
                                 <div class="form-group">
@@ -284,6 +284,20 @@ function select_colleges() {
     }
     $("#id_colleges").val(colleges_list);
 }
+$(document).ready(function(){
+    var colleges = $('#college_container');
+    var colleges_list = [];
+    for(var i=0;i<colleges.children().length;i++) {
+        colleges_list.push(colleges.children()[i].dataset["college_id"]);
+    }
+    $("#id_colleges").val(colleges_list);
+    var tags = $('#tag_container');
+    var tags_list = [];
+    for(i=0;i<tags.children().length;i++) {
+        tags_list.push(tags.children()[i].dataset["tag_id"]);
+    }
+    $("#id_tags").val(tags_list);
+});
 
 function select_tags() {
     var tags = $('#tag_container');

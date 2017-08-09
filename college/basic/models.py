@@ -192,7 +192,7 @@ class News(models.Model):
     keywords = models.CharField(max_length=100, null=True, blank=True, verbose_name="关键字")  # 关键字
     abstract = models.TextField(null=True, blank=True, verbose_name="摘要")  # 摘要
     md_doc = models.TextField(null=True, blank=True, verbose_name="内容")  # 内容
-    html_code = models.TextField(null=True, blank=True, verbose_name="内容")  # 内容
+    html_code = models.TextField(null=True, blank=True, verbose_name="HTML_code")  # 内容
     is_published = models.BooleanField(default=False, verbose_name="已发布")  # 是否已发布
     is_allow_comments = models.BooleanField(default=True, verbose_name="允许评论")  # 是否允许评论
     is_stick_top = models.BooleanField(default=False, verbose_name="置顶")  # 是否置顶

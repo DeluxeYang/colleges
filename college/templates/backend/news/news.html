@@ -1,0 +1,30 @@
+
+{% extends "backend/base.html" %}
+
+
+{% block content %}
+
+<link rel="stylesheet" href="/static/css/editormd.css" />
+<script src="/static/js/distpicker.data.js"></script>
+<script src="/static/js/distpicker.js"></script>
+<script src="/static/js/editormd.js"></script>
+<!-- /. ROW  -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            {{ news.content|safe}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+</script>
+{% endblock %}

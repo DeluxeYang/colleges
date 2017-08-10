@@ -139,8 +139,7 @@ def create_news(news, tags, colleges):
         title=news["title"],
         keywords=news["keywords"],
         abstract=news["abstract"],
-        md_doc=news["md_doc"],
-        html_code=news["html_code"],
+        content=news["content"],
         is_published=news["is_published"],
         is_allow_comments=news["is_allow_comments"],
         is_stick_top=news["is_stick_top"],
@@ -167,8 +166,7 @@ def update_news(news, tags, colleges):
     _news.title = news["title"]
     _news.keywords = news["keywords"]
     _news.abstract = news["abstract"]
-    _news.md_doc = news["md_doc"]
-    _news.html_code = news["html_code"]
+    _news.content = news["content"]
     _news.is_published = news["is_published"]
     _news.is_allow_comments = news["is_allow_comments"]
     _news.is_stick_top = news["is_stick_top"]

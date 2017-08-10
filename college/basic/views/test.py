@@ -6,6 +6,8 @@
 import json
 
 from django.http import HttpResponse
+from django import forms
+from DjangoUeditor.widgets import UEditorWidget
 
 from basic.views import Table
 from basic.utils.logger import logger

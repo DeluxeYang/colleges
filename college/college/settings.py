@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'backend',
     'api',
     'django_cleanup',
+    'DjangoUeditor',
 )
 
 MIDDLEWARE_CLASSES = (

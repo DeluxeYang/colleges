@@ -27,4 +27,6 @@ urlpatterns = [
     url(r'^test/', test.test),
     url(r'^backend/', include('backend.urls')),
     url(r'^api/', include('api.urls')),
+
+    url(r'^ueditor/', include('DjangoUeditor.urls')),
 ]

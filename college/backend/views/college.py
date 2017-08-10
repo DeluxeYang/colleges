@@ -129,12 +129,15 @@ def retrieve_colleges(request, param="", digit=""):
         if digit == "":
             colleges = bool_switch[param]  # 选择
         else:
+            area = ""
+            if param == "area":
+                area = Area.objects.get(id=int(digit)).name_cn
             foreign_switch = {
                 "department": colleges.filter(department_id=int(digit)),
                 "level": colleges.filter(edu_level_id=int(digit)),  # 参数为211，则筛选出211院校
                 "class": colleges.filter(edu_class_id=int(digit)),  # 参数为985，则筛选出985院校
                 "nation": colleges.filter(nation_code__startswith=digit),  # 参数为985p，则筛选出985平台院校
-                "area": colleges.filter(area=Area.objects.get(id=int(digit)).name_cn)}
+                "area": colleges.filter(area=area)}
             colleges = foreign_switch[param]  # 选择
     except KeyError:
         logger.warning("错误访问: "+request.path)
@@ -241,9 +244,6 @@ def college_classification(obj):
     return fields_dict
 
 
-add_college_classification = college_classification(obj={})
-
-
 def add_college(request):
     """
     添加一所院校
@@ -285,6 +285,7 @@ def add_college(request):
             messages.error(request, "添加失败，请检查添加的数据")
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[2]["active"] = True
+    add_college_classification = college_classification(obj={})
     return render_to_response("backend/college/add.html", {
             "self": request.user,
             "fields": add_college_classification,

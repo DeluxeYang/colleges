@@ -4,6 +4,8 @@ import copy
 import json
 import traceback
 
+from django import forms
+from DjangoUeditor.forms import UEditorField
 from django.db import connection
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -132,7 +134,10 @@ def news_classification(obj):
     return fields_dict
 
 
-add_news_classification = news_classification({})
+class NewsUEditorModelForm(forms.ModelForm):
+    class Meta:
+        model = News
+        fields = ["content"]
 
 
 def add_news(request):
@@ -147,8 +152,7 @@ def add_news(request):
                     "title": request.POST["title"],
                     "keywords": request.POST["keywords"],
                     "abstract": request.POST["abstract"],
-                    "md_doc": request.POST["test-editormd-markdown-doc"],
-                    "html_code": request.POST["test-editormd-html-code"],
+                    "content": request.POST["content"],
                     "is_published": True if "is_published" in request.POST else False,
                     "is_allow_comments": True if "is_allow_comments" in request.POST else False,
                     "is_stick_top": True if "is_stick_top" in request.POST else False,
@@ -161,12 +165,15 @@ def add_news(request):
         except Exception as e:
             logger.error(str(e))
             messages.error(request, "添加新闻失败")
+    form = NewsUEditorModelForm()
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[2]["active"] = True
+    add_news_classification = news_classification({})
     return render_to_response("backend/news/add.html", {
             "self": request.user,
             "fields": add_news_classification,
             "urls": urls,
+            "form": form,
             "get_colleges_by_nation_url": "/api/college/by/nation/",
             "news_image_upload_url": "/api/news/image_upload/"
         }, context_instance=RequestContext(request))
@@ -185,8 +192,7 @@ def modify_news(request, news_id):
                      "title": request.POST["title"],
                      "keywords": request.POST["keywords"],
                      "abstract": request.POST["abstract"],
-                     "md_doc": request.POST["test-editormd-markdown-doc"],
-                     "html_code": request.POST["test-editormd-html-code"],
+                     "content": request.POST["content"],
                      "is_published": True if "is_published" in request.POST else False,
                      "is_allow_comments": True if "is_allow_comments" in request.POST else False,
                      "is_stick_top": True if "is_stick_top" in request.POST else False,
@@ -199,6 +205,7 @@ def modify_news(request, news_id):
             logger.error(str(e))
             logger.error(traceback.format_exc())
             messages.error(request, "修改新闻失败")
+    form = NewsUEditorModelForm(instance=news)
     modify_news_classification = news_classification(news.__dict__)
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[0]["active"] = True
@@ -206,7 +213,7 @@ def modify_news(request, news_id):
         "self": request.user,
         "fields": modify_news_classification,
         "urls": urls,
-        "md_doc": news.md_doc,
+        "form": form,
         "get_colleges_by_nation_url": "/api/college/by/nation/",
         "news_image_upload_url": "/api/news/image_upload/",
     }, context_instance=RequestContext(request))
@@ -245,3 +252,18 @@ def delete_news(request):
         logger.error(traceback.format_exc())
         return_dict["error"] = "删除失败"
     return HttpResponse(json.dumps(return_dict))
+
+
+def get_news(request, news_id):
+    """
+
+    :return:
+    """
+    news = News.objects.get(id=int(news_id))
+    urls = copy.deepcopy(SIDEBAR_URL)
+    urls[1]["active"] = True
+    return render_to_response("backend/news/news.html", {
+            "self": request.user,
+            "urls": urls,
+            "news": news,
+        }, context_instance=RequestContext(request))

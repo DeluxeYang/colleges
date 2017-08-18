@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.template.context import RequestContext
 
 from basic.utils.logger import logger
-from basic.models import News, NewsAndTag, NewsTag, NewsAndCollege
+from basic.models import News, NewsAndTag, NewsTag, NewsAndCollege, College
 from basic.views.News import get_all_news, get_news_by_id, create_news, update_news
 
 SIDEBAR_URL = [
@@ -79,19 +79,51 @@ def retrieve_news(request, param="", digit=""):
     :return: json
     """
     _news = get_all_news()
-    bool_switch = {"": _news}
     try:
-        if digit == "":
-            _news = bool_switch[param]  # 选择
-        else:
-            foreign_switch = {}
-            _news = foreign_switch[param]  # 选择
+        if digit != "":
+            if param == "tag":
+                _news = NewsTag.objects.get(id=int(digit)).news_set.all()
+            elif param == "college":
+                _news = College.objects.get(id=int(digit)).news_set.all()
     except KeyError:
         logger.warning("错误访问: "+request.path)
         _news = []
     return_dict = format_news(_news)  # 格式化院校信息
     logger.info("数据库访问次数: "+str(len(connection.queries)))
     return HttpResponse(json.dumps(return_dict))
+
+
+def news_search_pick(request, param):
+    """
+    筛选院校
+    :return:
+    """
+    model_fields = {"many_to_many": []}
+
+    if param == "tag":
+        if request.method == "POST":
+            tag = request.POST.get("tag", "")
+            return HttpResponseRedirect("/backend/news/search/tag/" + tag + "/")
+        news_tags = NewsTag.objects.all()
+        model_fields["tag"] = {"size": len(news_tags), "name": "新闻标签", "field": "tag"}
+        for tag in news_tags:
+            temp = {"title": tag.title, "id": tag.id}
+            model_fields["many_to_many"].append(temp)
+    elif param == "college":
+        if request.method == "POST":
+            return HttpResponseRedirect("/backend/news/search/college/" + request.POST["college"] + "/")
+        model_fields["nation"] = [{"name": "所在地（省级）", "field": "province"},
+                                  {"name": "所在地（市级）", "field": "city"}]
+    urls = copy.deepcopy(SIDEBAR_URL)
+    urls[1]["active"] = True
+    return render_to_response("backend/news/pick.html",
+                              {
+                                  "self": request.user,
+                                  "fields": model_fields,
+                                  "urls": urls,
+                                  "get_colleges_by_nation_url": "/api/college/by/nation/",
+                              },
+                              context_instance=RequestContext(request))
 
 
 def news_classification(obj):
@@ -254,16 +286,29 @@ def delete_news(request):
     return HttpResponse(json.dumps(return_dict))
 
 
+def news_time_classification(news):
+    _time_format = "%Y-%m-%d %H:%M:%S"
+    news_times = [
+        {"name": "创建时间", "field": news.create_time},
+        {"name": "更新时间", "field": news.update_time},
+        {"name": "发布时间", "field": news.publish_time}]
+    return news_times
+
+
 def get_news(request, news_id):
     """
 
     :return:
     """
     news = News.objects.get(id=int(news_id))
+    modify_news_classification = news_classification(news.__dict__)
+    news_times = news_time_classification(news)
     urls = copy.deepcopy(SIDEBAR_URL)
-    urls[1]["active"] = True
+    urls[0]["active"] = True
     return render_to_response("backend/news/news.html", {
             "self": request.user,
+            "fields": modify_news_classification,
+            "news_times": news_times,
             "urls": urls,
             "news": news,
         }, context_instance=RequestContext(request))

@@ -44,6 +44,8 @@ urlpatterns = [
     url(r'^news/retrieve/(?P<param>[a-zA-Z0-9_]+)/$', news.retrieve_news),
     url(r'^news/retrieve/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', news.retrieve_news),
 
+    url(r'^news/pick/(?P<param>[a-zA-Z0-9_]+)/$', news.news_search_pick),
+
     url(r'^news/(?P<news_id>[0-9]+)/$', news.get_news),
     url(r'^news/add/$', news.add_news),
     url(r'^news/modify/(?P<news_id>[0-9]+)/$', news.modify_news),

@@ -15,9 +15,78 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-lg-12">
+                        {% for field in fields.char %}
+                            <div class="form-group">
+                                <label>{{ field.name }}</label>
+                                <input class="form-control" readonly name="{{ field.field }}" value="{{ field.value }}">
+                            </div>
+                        {% endfor %}
+
                         <div class="form-group">
-                            {{ news.content|safe}}
+                            <label>相关院校</label>
+                            <div class="panel panel-default">
+                                <div class="panel-body" style="padding-bottom: 0;">
+                                    <div id="college_container">
+                                        {% for college in fields.college %}
+                                            <div class="alert alert-tag" style="display:inline-block" data-college_id="{{ college.id }}">
+                                                {{ college.name_cn }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+
+                        <div class="form-group">
+                            <label>标签</label>
+                            <div class="panel panel-default">
+                                <div class="panel-body" style="padding-bottom: 0;">
+                                    <div id="tag_container">
+                                        {% for tag in fields.many_to_many %}
+                                            {% if tag.checked %}
+                                            <div class="alert alert-tag" style="display:inline-block" data-tag_id="{{ tag.id }}">
+                                                {{ tag.title }}
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% for field in fields.text %}
+                            <div class="form-group">
+                                <label>{{ field.name }}</label>
+                                <textarea class="form-control" readonly rows="3" name="{{ field.field }}">{{ field.value }}</textarea>
+                            </div>
+                        {% endfor %}
+
+                        <div class="form-group">
+                            <label>内容</label>
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    {{ news.content|safe}}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% for field in fields.boolean %}
+                            <div class="form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" disabled value="" {{ field.value }}>{{ field.name }}
+                                    </label>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% for field in news_times %}
+                            <div class="form-group">
+                                <label>{{ field.name }}</label>
+                                <input class="form-control" readonly value="{{ field.field|date:"Y-m-d H:i:s"}}">
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

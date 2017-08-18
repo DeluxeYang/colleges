@@ -187,8 +187,8 @@ class NewsTag(models.Model):
 
 class News(models.Model):
     user = models.ForeignKey(User, related_name='news')  # 发布用户
-    tag = models.ManyToManyField(NewsTag, through='NewsAndTag', related_name='news', verbose_name="标签")  # 所属标签
-    college = models.ManyToManyField(College, through='NewsAndCollege', related_name='news', verbose_name="相关院校")
+    tag = models.ManyToManyField(NewsTag, through='NewsAndTag', verbose_name="标签")  # 所属标签
+    college = models.ManyToManyField(College, through='NewsAndCollege', verbose_name="相关院校")
     title = models.CharField(max_length=255, verbose_name="标题")  # 标题
     keywords = models.CharField(max_length=100, null=True, blank=True, verbose_name="关键字")  # 关键字
     abstract = models.TextField(null=True, blank=True, verbose_name="摘要")  # 摘要

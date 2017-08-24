@@ -14,12 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import url
-from backend.views import index, college, news
+from backend.views import index, college, news, ranking
 
 
 urlpatterns = [
     url(r'^$', index.index),
-
+    # college
     url(r'^college/$', college.index),
     url(r'^college/search/(?P<param>[a-zA-Z0-9_]+)/$', college.index),
     url(r'^college/search/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', college.index),
@@ -51,4 +51,13 @@ urlpatterns = [
     url(r'^news/modify/(?P<news_id>[0-9]+)/$', news.modify_news),
     url(r'^news/delete/$', news.delete_news),
     url(r'^news/batch_delete/$', news.batch_delete_news),
+    # ranking
+    url(r'^ranking/$', ranking.index),
+    url(r'^ranking/retrieve/$', ranking.retrieve_ranking),
+    url(r'^ranking/(?P<ranking_id>[0-9]+)/$', ranking.get_ranking),
+
+    url(r'^ranking/add/$', ranking.add_ranking),
+    url(r'^ranking/delete/$', ranking.delete_ranking),
+    url(r'^ranking/batch_delete/$', ranking.batch_delete_ranking),
+
 ]

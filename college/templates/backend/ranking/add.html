@@ -1,0 +1,116 @@
+{% extends "backend/base.html" %}
+
+
+{% block content %}
+<script src="/static/js/distpicker.data.js"></script>
+<script src="/static/js/distpicker.js"></script>
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="page-header">
+            添加榜单 <small></small>
+        </h1>
+    </div>
+</div>
+<!-- /. ROW  -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <form role="form"  method="post" id="news_add_form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="form-label">榜单中文名</label>
+                                <input class="form-control" name="table_name_cn">
+                            </div>
+                            <div class="panel panel-default" id="field" style="position: relative;">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-xs-6">
+                                                <label class="form-label">字段类型</label>
+                                                <select class="form-control" disabled>
+                                                    <option >varchar</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-xs-6">
+                                                <label class="form-label">中文字段名</label>
+                                                <input class="form-control" disabled value="批次">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel panel-default" id="field" style="position: relative;">
+                                <input type="button" style="z-index:999;position: absolute;top: 3px;right: 3px;"
+                                       class="btn btn-danger btn-sm" name="deleteFieldButtons" onclick="deleteField(event)" value="删除"/>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-xs-6">
+                                                <label class="form-label">字段类型</label>
+                                                <select class="form-control" id="id_field_type" name="field_type">
+                                                    {% for t in field_types %}
+                                                        <option value="{{ t.id }}">{{ t.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-xs-6">
+                                                <label class="form-label">中文字段名</label>
+                                                <input class="form-control" name="field_name_cn">
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="button" id="add_one_field" value="添加一个字段" class="btn btn-primary" />
+                            <input type="submit" id="submit" value="提交" class="btn btn-default pull-right" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+function deleteField(event){
+    if($("select[name='field_type']").length > 1){
+        event.target.parentNode.remove();
+    }else {
+        $('#messages').append('<div class="alert alert-danger"> ' +
+            '<a class="close" data-dismiss="alert">×</a>' +
+            '至少有一个字段</div>');
+    }
+}
+$(document).ready(function(){
+    var addField = $("#add_one_field");
+    addField.click(function(){
+        addField.before('<div class="panel panel-default" id="field" style="position: relative;">' +
+            '<input type="button" style="z-index:999;position: absolute;top: 3px;right: 3px;"' +
+            'class="btn btn-danger btn-sm" name="deleteFieldButtons" onclick="deleteField(event)" value="删除"/>' +
+            '<div class="panel-body">' +
+            '<div class="row">' +
+            '<div class="form-group">' +
+            '<div class="col-xs-6">' +
+            '<label class="form-label">字段类型</label>' +
+            '<select class="form-control" id="id_field_type" name="field_type">' +
+            {% for t in field_types %}
+            '<option value="{{ t.id }}">{{ t.name }}</option>' +
+            {% endfor %}
+            '</select>' +
+            '</div>' +
+            '<div class="col-xs-6">' +
+            '<label class="form-label">中文字段名</label>' +
+            '<input class="form-control" name="field_name_cn">' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>');
+    });
+});
+</script>
+{% endblock %}

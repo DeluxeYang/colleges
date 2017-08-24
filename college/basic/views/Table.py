@@ -3,6 +3,10 @@
 """
 
 """
+import time
+import random
+import string
+
 from django.db import IntegrityError
 from django.db.models import Q
 
@@ -178,29 +182,41 @@ def get_field_types_size():
     return field_types_size
 
 
+def get_random_name(temp_dict=None):
+    while True:
+        salt = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+        if not isinstance(temp_dict, dict):  # 如果参数为空，则返回带有时间戳的随机字符串
+            return salt + "_" + str(int(time.time()))
+        if salt not in temp_dict:  # 如果参数不为空，则为字典，判断salt是否重复
+            temp_dict[salt] = 1
+            return salt
+
+
 def create_table(table, fields):
     """
     添加【表】及【表的字段】
-    :param table: {table_name,table_name_cn,table_type}
-    :param fields: [{field_name,field_name_cn,field_type}
+    :param table: {table_name_cn,table_type}
+    :param fields: [{field_name_cn,field_type}
     :return:
     """
     result = False
     try:
         _table = Table.objects.create(  # 先建立表
-            name=table["table_name"],
+            name="ranking_" + get_random_name(),
             name_cn=table["table_name_cn"],
             type=get_table_type_by_id_or_name(table["table_type"]))  # 表类型的数据可以为名称也可以为ID，外键：TypeOfTable
-        sql = "CREATE TABLE " + table["table_name"] + "(" \
-              + "id int(10) unsigned NOT NULL AUTO_INCREMENT,"
+        sql = "CREATE TABLE " + _table.name + "(" \
+              + "id int(10) unsigned NOT NULL AUTO_INCREMENT," \
+              + "batch varchar(255),"
+        temp_dict = {}
         for field in fields:
             _type = get_field_type_by_name_or_id(field["field_type"])  # 字段类型数据可以为名称也可以为ID
-            Field.objects.create(
-                name=field["field_name"],
+            _field = Field.objects.create(
+                name="field_" + get_random_name(temp_dict),
                 name_cn=field["field_name_cn"],
                 type=_type,  # 外键：TypeOfField
                 table=_table)  # 外键：Table
-            sql += field["field_name"] + " " + _type.name
+            sql += _field.name + " " + _type.name
             sql += "(%s)," % _type.size if _type.size else ","  # 如果没有size，则没有括号
         sql += "PRIMARY KEY (id));"  # SQL尾
         logger.info(sql)  # 输出SQL
@@ -210,7 +226,7 @@ def create_table(table, fields):
         mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
         if res != ():
             raise Exception(res)
-        result = True
+        result = _table.id
     except IntegrityError as e:  # 仅处理重复添加错误
         logger.error(str(e))
     finally:

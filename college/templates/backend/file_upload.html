@@ -13,7 +13,9 @@
         uploadUrl: "{{ file_upload_url }}",
         allowedFileExtensions : [],
         uploadExtraData: function(previewId, index) {   //额外参数的关键点
-                    var obj = {"csrfmiddlewaretoken":getCookie('csrftoken')};
+                    var obj = {
+                        "csrfmiddlewaretoken":getCookie('csrftoken'),
+                        "extra": $("#extra").val()};
                     return obj;
                 }
     });
@@ -31,6 +33,7 @@
     function upload() {
         var formData = new FormData($('#excel_upload')[0]);
         formData.append("csrfmiddlewaretoken", getCookie('csrftoken'));
+        formData.append("extra", $("#extra").val());
         $.ajax({
             type: "post",
             url: "{{ file_upload_url }}",

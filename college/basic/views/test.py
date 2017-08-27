@@ -10,6 +10,7 @@ from django import forms
 from DjangoUeditor.widgets import UEditorWidget
 
 from basic.views import Table
+from basic.models import *
 from basic.utils.logger import logger
 
 
@@ -64,8 +65,11 @@ def test3(request):
 
 
 def test(request):
-    from basic.models import Nation
-    from django.db.models import Q
-    result = Nation.objects.get(
-            code__contains="").code
-    return HttpResponse(json.dumps(result))
+    year = 1800
+    for y in range(1900, 2100):
+        YearSeasonMonth.objects.create(year=y, type=1)
+        for s in range(1, 5):
+            YearSeasonMonth.objects.create(year=y, season=s, type=2)
+        for m in range(1, 13):
+            YearSeasonMonth.objects.create(year=y, month=m, type=3)
+    return HttpResponse("")

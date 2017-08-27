@@ -31,7 +31,7 @@ def index(request):
 
     :return:
     """
-    model_fields = ["#", "榜单名", "创建时间", "删除"]
+    model_fields = ["#", "榜单名", "创建时间", "由excel导入数据", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[0]["active"] = True
     return render_to_response("backend/ranking/list.html", {
@@ -46,7 +46,7 @@ def index(request):
 
 def format_ranking(ranking):
     """
-    格式化新闻列表
+    格式化列表
     :return: json
     """
     return_dict = {"data": []}
@@ -57,6 +57,7 @@ def format_ranking(ranking):
             '" name="news_checkbox" type="checkbox"/></label>',
             "<a href='/backend/ranking/" + str(_ranking.id) + "/'>" + _ranking.name_cn + "</a>",
             _ranking.create_time.strftime("%Y-%m-%d"),
+            "<a href='/backend/ranking/import/" + str(_ranking.id) + "/'>导入数据</a>",
             "<a id='row_" + str(_ranking.id) +
             "' href='javascript:href_ajax(" + str(_ranking.id) + ")'" +
             " onclick=\"return confirm('确认删除" + _ranking.name_cn + "？')\">删除</a>"])
@@ -66,7 +67,7 @@ def format_ranking(ranking):
 
 def retrieve_ranking(request):
     """
-    获取所有院校信息
+    获取所有信息
     :return: json
     """
     _ranking = Table.get_all_tables()
@@ -130,7 +131,7 @@ def get_ranking(request, ranking_id):
 
 def batch_delete_ranking(request):
     """
-    批量删除院校
+    批量删除
     :param request:
     :return:
     """
@@ -149,7 +150,7 @@ def batch_delete_ranking(request):
 
 def delete_ranking(request):
     """
-    删除一所院校
+    删除一所
     :param request:
     :return:
     """
@@ -162,3 +163,41 @@ def delete_ranking(request):
         logger.error(traceback.format_exc())
         return_dict["error"] = "删除失败"
     return HttpResponse(json.dumps(return_dict))
+
+
+def import_ranking(request, ranking_id):
+    """
+
+    :return:
+    """
+    if request.method == "POST":
+        return_dict = {}
+        try:
+            _file = request.FILES.get("file_upload")  # 上传的文件
+            wb = excel_loader.load_excel(_file)  # 读取excel
+            head = excel_loader.get_excel_head(wb)
+            body = excel_loader.get_excel_body_generator(wb)
+            temp_dict = {}
+            _fields = Table.get_fields_by_table_id(int(ranking_id))
+            for _field in _fields:
+                print(_field)
+            return_dict["success"] = "success"
+        except Exception as e:
+            logger.error(str(e))
+            logger.error(traceback.format_exc())
+            return_dict["error"] = "出现错误，请检查文件及内容格式"
+        finally:
+            return HttpResponse(json.dumps(return_dict))
+    year = YearSeasonMonth.objects.filter(type=1)
+    _fields = Table.get_fields_by_table_id(int(ranking_id))
+    fields = [str(f.name_cn)+"("+str(f.type)+")" for f in _fields]
+    urls = copy.deepcopy(SIDEBAR_URL)  # 侧边栏网址
+    urls[0]["active"] = True
+    return render_to_response("backend/ranking/import.html", {
+        "self": request.user,
+        "fields": fields,
+        "year": year,
+        "urls": urls,
+        "file_upload_url": "/backend/ranking/import/"+str(ranking_id)+"/",
+    }, context_instance=RequestContext(request))
+

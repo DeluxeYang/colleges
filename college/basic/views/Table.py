@@ -257,3 +257,11 @@ def drop_table(table):
         logger.error(str(e))
     finally:
         return result
+
+
+def insert_table():
+    """
+
+    :return:
+    """
+    pass

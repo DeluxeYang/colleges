@@ -45,6 +45,15 @@ class YearSeasonMonth(models.Model):
     def __str__(self):  # __unicode__ on Python 2
         return str(self.text)
 
+    def save(self, *args, **kwargs):
+        seasons = ["一", "二", "三", "四"]
+        self.text = str(self.year) + "年"
+        if self.type == 2:
+            self.text += ("第" + seasons[self.season-1] + "季度")
+        if self.type == 3:
+            self.text += (str(self.month) + "月")
+        super().save(*args, **kwargs)
+
 
 class BatchOfTable(models.Model):  # 具体到批次的表名
     table = models.ForeignKey(Table, related_name='BatchOfTable')  # 表

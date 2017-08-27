@@ -1,0 +1,129 @@
+{% extends "backend/base.html" %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="page-header">
+            导入榜单信息 <small>由excel文件导入</small>
+        </h1>
+    </div>
+</div>
+<div class="row">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <h1><small id="batch">选择导入的批次:</small></h1>
+            <input id="extra" value="" style="display: none;">
+            <br>
+            <a href="#" class="btn btn-success" id="batch_none">独立榜单，无批次</a>
+            <a href="#" class="btn btn-info" id="batch_years">选择年月季度批次</a>
+            <form role="form"  method="post" id="batch_form">
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <h1><small>Excel文件中应且仅包含如下字段:</small></h1>
+            <p>
+                {% for field in fields %}
+                    {{ field }},&nbsp;&nbsp;
+                {% endfor %}
+            </p>
+        </div>
+    </div>
+    {% include "backend/file_upload.html" %}
+</div>
+<script>
+$("#batch_years").click(function(){
+    $("#batch_form").append('<div class="form-group">'+
+        '<label class="form-label">年份</label>'+
+        '<select id="years" class="form-control" >'+
+        {% for y in year %}
+        '<option value="{{ y.year }}">{{ y.year }}</option>'+
+        {% endfor %}
+        '</select>'+
+        '</div>'+
+        '<a href="#" class="btn btn-success" id="confirm_year">确定选择该年份</a> '+
+        '<a href="#" class="btn btn-info" id="batch_season">选择季度</a> '+
+        '<a href="#" class="btn btn-warning" id="batch_month">按月份</a> '
+    );
+    var date=new Date;
+    $("#years").val(date.getFullYear().toString());
+    $("#confirm_year").click(function(){
+        var year = $("#years");
+        $("#extra").val("1-"+year .val());
+        var batch = $("#batch");
+        batch.html(batch.html()+"&nbsp;&nbsp;"+year.val()+"年");
+        $("#confirm_year").remove();
+        $("#batch_season").remove();
+        $("#batch_month").remove();
+    });
+    $("#batch_season").click(function(){
+        $("#batch_form").append('<div class="form-group">'+
+        '<label class="form-label">季度</label>'+
+        '<select id="seasons" class="form-control" >'+
+                '<option value="1">第一季度</option>'+
+                '<option value="2">第二季度</option>'+
+                '<option value="3">第三季度</option>'+
+                '<option value="4">第四季度</option>'+
+        '</select>'+
+        '</div>'+
+        '<a href="#" class="btn btn-info" id="confirm_season">确定选择该季度</a> ');
+        $("#confirm_season").click(function(){
+            var year = $("#years");
+            var season = $("#seasons");
+            $("#extra").val("2-"+year.val()+"-"+season.val());
+            var batch = $("#batch");
+            var seasons = ["第一季度", "第二季度", "第三季度", "第四季度"];
+            batch.html(batch.html()+"&nbsp;&nbsp;"+year.val()+"年-"+seasons[season.val()-1]);
+            $("#confirm_season").remove();
+            $("#batch_form").remove();
+        });
+        $("#confirm_year").remove();
+        $("#batch_season").remove();
+        $("#batch_month").remove();
+    });
+    $("#batch_month").click(function(){
+        $("#batch_form").append('<div class="form-group">'+
+        '<label class="form-label">月份</label>'+
+        '<select id="months" class="form-control" >'+
+                '<option value="1">1月</option>'+
+                '<option value="2">2月</option>'+
+                '<option value="3">3月</option>'+
+                '<option value="4">4月</option>'+
+                '<option value="5">5月</option>'+
+                '<option value="6">6月</option>'+
+                '<option value="7">7月</option>'+
+                '<option value="8">8月</option>'+
+                '<option value="9">9月</option>'+
+                '<option value="10">10月</option>'+
+                '<option value="11">11月</option>'+
+                '<option value="12">12月</option>'+
+        '</select>'+
+        '</div>'+
+        '<a href="#" class="btn btn-info" id="confirm_month">确定选择该月份</a> ');
+        $("#confirm_month").click(function(){
+            var year = $("#years");
+            var month = $("#months");
+            $("#extra").val("3-"+year.val()+"-"+month.val());
+            var batch = $("#batch");
+            batch.html(batch.html()+"&nbsp;&nbsp;"+year.val()+"年-"+month.val()+"月");
+            $("#confirm_month").remove();
+            $("#batch_form").remove();
+        });
+        $("#confirm_year").remove();
+        $("#batch_season").remove();
+        $("#batch_month").remove();
+    });
+    $("#batch_none").remove();
+    $("#batch_years").remove();
+});
+$("#batch_none").click(function(){
+    $("#extra").val("0");
+    var batch = $("#batch");
+    batch.html(batch.html()+"&nbsp;&nbsp;无");
+    $("#batch_none").remove();
+    $("#batch_years").remove();
+});
+</script>
+{% endblock %}

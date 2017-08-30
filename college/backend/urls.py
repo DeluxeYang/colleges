@@ -62,4 +62,10 @@ urlpatterns = [
     url(r'^ranking/delete/$', ranking.delete_ranking),
     url(r'^ranking/batch_delete/$', ranking.batch_delete_ranking),
 
+    url(r'^rankings/$', ranking.rankings_index),
+    url(r'^rankings/retrieve/$', ranking.retrieve_rankings),
+    url(r'^rankings/(?P<ranking_id>[0-9]+)/$', ranking.rankings_index),
+    url(r'^rankings/retrieve/(?P<ranking_id>[0-9]+)/$', ranking.retrieve_rankings),
+    url(r'^rankings/delete/$', ranking.delete_rankings),
+    url(r'^rankings/batch_delete/$', ranking.batch_delete_ranking_batches),
 ]

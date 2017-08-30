@@ -259,9 +259,30 @@ def drop_table(table):
         return result
 
 
-def insert_table():
+def insert_table(table_id, fields, args):
     """
 
     :return:
     """
-    pass
+    _table = get_table_by_id(int(table_id))
+    _fields = get_fields_by_table_id(int(table_id))
+    for field in _fields:
+        fields.append(field.name)
+    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+    sql = mysql_base_api.build_insertsql(_table.name, fields)
+    mysql_base_api.sql_executemany(conn, cursor, sql, args)
+    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+
+
+def table_record_delete(table_name, fields, args):
+    """
+
+    :return:
+    """
+    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+    sql = mysql_base_api.build_delete_sql(table_name, fields)
+    print(sql)
+    mysql_base_api.sql_executemany(conn, cursor, sql, args)
+    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接

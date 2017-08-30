@@ -31,7 +31,7 @@ def index(request):
 
     :return:
     """
-    model_fields = ["#", "榜单名", "创建时间", "由excel导入数据", "删除"]
+    model_fields = ["#", "榜单名  (点击查看该榜单各批次)", "榜单字段", "创建时间", "由excel导入数据", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[0]["active"] = True
     return render_to_response("backend/ranking/list.html", {
@@ -55,7 +55,8 @@ def format_ranking(ranking):
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(_ranking.id) +
             '" name="news_checkbox" type="checkbox"/></label>',
-            "<a href='/backend/ranking/" + str(_ranking.id) + "/'>" + _ranking.name_cn + "</a>",
+            "<a href='/backend/rankings/" + str(_ranking.id) + "/'>" + _ranking.name_cn + "</a>",
+            "<a href='/backend/ranking/" + str(_ranking.id) + "/'>查看字段</a>",
             _ranking.create_time.strftime("%Y-%m-%d"),
             "<a href='/backend/ranking/import/" + str(_ranking.id) + "/'>导入数据</a>",
             "<a id='row_" + str(_ranking.id) +
@@ -165,6 +166,113 @@ def delete_ranking(request):
     return HttpResponse(json.dumps(return_dict))
 
 
+def rankings_index(request, ranking_id=""):
+    """
+
+    :return:
+    """
+    model_fields = ["#", "榜单名", "批次", "创建时间", "删除"]
+    urls = copy.deepcopy(SIDEBAR_URL)
+    urls[1]["active"] = True
+    if ranking_id != "":
+        ranking_id += "/"
+    return render_to_response("backend/ranking/list.html", {
+        "self": request.user,
+        "urls": urls,
+        "fields": model_fields,
+        "ranking_delete_url": "/backend/rankings/delete/",
+        "ranking_batch_delete_url": "/backend/rankings/batch_delete/",
+        "get_all_ranking_url": "/backend/rankings/retrieve/"+ranking_id
+    }, context_instance=RequestContext(request))
+
+
+def format_rankings(batches):
+    """
+    格式化列表
+    :return: json
+    """
+    return_dict = {"data": []}
+    i = 1
+    for batch in batches:
+        return_dict["data"].append([
+            '<label>' + str(i) + '<input value="' + str(batch.id) +
+            '" name="news_checkbox" type="checkbox"/></label>',
+            str(batch.table.name_cn),
+            str(batch.batch.text),
+            batch.create_time.strftime("%Y-%m-%d"),
+            "<a id='row_" + str(batch.id) +
+            "' href='javascript:href_ajax(" + str(batch.id) + ")'" +
+            " onclick=\"return confirm('确认删除" + str(batch.table.name_cn)
+            + "_" + str(batch.batch.text) + "？')\">删除</a>"])
+        i += 1
+    return return_dict
+
+
+def retrieve_rankings(request, ranking_id=""):
+    """
+    获取所有信息
+    :return: json
+    """
+    if ranking_id == "":
+        batches = BatchOfTable.objects.all()
+    else:
+        _ranking = Table.get_table_by_id(int(ranking_id))
+        batches = BatchOfTable.objects.filter(table=_ranking)
+    return_dict = format_rankings(batches)  # 格式化院校信息
+    logger.info("数据库访问次数: "+str(len(connection.queries)))
+    return HttpResponse(json.dumps(return_dict))
+
+
+def batch_delete_ranking_batches(request):
+    """
+    批量删除
+    :return:
+    """
+    return_dict = {}
+    try:
+        delete_list = request.POST.getlist("ranking_ids[]")
+        batches = BatchOfTable.objects.filter(id__in=delete_list)
+        _fields = ["batch"]
+        _args = []
+        last_table_name = batches[0].table.name
+        for _batch in batches:
+            _args.append((_batch.batch.text.encode('utf-8'), ))  # 批次入list
+            table_name = _batch.table.name  # 该记录的榜单名
+            if table_name != last_table_name:  # 如果与上一个榜单名不同，则提交一次
+                Table.table_record_delete(last_table_name, _fields, _args)  # 把之前的提交了
+                last_table_name = table_name  # 更新上一次榜单名
+                _args = []  # 批次重置
+        Table.table_record_delete(last_table_name, _fields, _args)
+        batches.delete()
+        return_dict["success"] = "删除成功"
+    except Exception as e:
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        return_dict["error"] = "删除失败"
+    return HttpResponse(json.dumps(return_dict))
+
+
+def delete_rankings(request):
+    """
+    删除一所
+    :return:
+    """
+    return_dict = {}
+    try:
+        delete_batch = int(request.POST["ranking_id"])
+        batch = BatchOfTable.objects.get(id=delete_batch)
+        _args = [(batch.batch.text.encode('utf-8',))]
+        _fields = ["batch"]
+        Table.table_record_delete(batch.table.name, _fields, _args)
+        batch.delete()
+        return_dict["success"] = "删除成功"
+    except Exception as e:
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        return_dict["error"] = "删除失败"
+    return HttpResponse(json.dumps(return_dict))
+
+
 def import_ranking(request, ranking_id):
     """
 
@@ -175,13 +283,42 @@ def import_ranking(request, ranking_id):
         try:
             _file = request.FILES.get("file_upload")  # 上传的文件
             wb = excel_loader.load_excel(_file)  # 读取excel
-            head = excel_loader.get_excel_head(wb)
+            excel_loader.get_excel_head(wb)
             body = excel_loader.get_excel_body_generator(wb)
-            temp_dict = {}
-            _fields = Table.get_fields_by_table_id(int(ranking_id))
-            for _field in _fields:
-                print(_field)
+            batch = request.POST["extra"]
+            if batch == "0":
+                _batch = YearSeasonMonth.objects.get(type=0)
+            else:
+                temp_batch = batch.split("-")
+                year = temp_batch[1]
+                if temp_batch[0] == "2":
+                    _batch = YearSeasonMonth.objects.get(year=int(year), season=int(temp_batch[2]), type=2)
+                elif temp_batch[0] == "3":
+                    _batch = YearSeasonMonth.objects.get(year=int(year), month=int(temp_batch[2]), type=3)
+                else:
+                    _batch = YearSeasonMonth.objects.get(year=int(year), type=1)
+            _ranking = Table.get_table_by_id(int(ranking_id))
+            if BatchOfTable.objects.filter(batch=_batch, table=_ranking).exists():
+                raise IntegrityError("批次重复")
+            args = []
+            for record in body:
+                temp_list = [_batch.text.encode('utf-8')]
+                for r in record:
+                    r = empty_is_empty_str(r)
+                    temp_list.append(r.encode('utf-8'))
+                args.append(tuple(temp_list))
+            fields = ["batch"]
+            Table.insert_table(int(ranking_id), fields, args)
+            BatchOfTable.objects.create(batch=_batch,
+                                        table=_ranking,
+                                        name_cn=str(_ranking.name_cn) + "_" + str(_batch.text))
             return_dict["success"] = "success"
+        except IndexError as e:
+            logger.error(str(e))
+            return_dict["error"] = "请选择批次"
+        except IntegrityError as e:  # 仅处理重复添加错误
+            logger.error(str(e))
+            return_dict["error"] = str(e)
         except Exception as e:
             logger.error(str(e))
             logger.error(traceback.format_exc())
@@ -189,6 +326,7 @@ def import_ranking(request, ranking_id):
         finally:
             return HttpResponse(json.dumps(return_dict))
     year = YearSeasonMonth.objects.filter(type=1)
+    _ranking = Table.get_table_by_id(int(ranking_id))
     _fields = Table.get_fields_by_table_id(int(ranking_id))
     fields = [str(f.name_cn)+"("+str(f.type)+")" for f in _fields]
     urls = copy.deepcopy(SIDEBAR_URL)  # 侧边栏网址
@@ -196,8 +334,17 @@ def import_ranking(request, ranking_id):
     return render_to_response("backend/ranking/import.html", {
         "self": request.user,
         "fields": fields,
+        "ranking": _ranking,
         "year": year,
         "urls": urls,
         "file_upload_url": "/backend/ranking/import/"+str(ranking_id)+"/",
     }, context_instance=RequestContext(request))
 
+
+def empty_is_empty_str(content):
+    """
+    如果excel里为空，则会返回“None”，所以再转换为空
+    :param content:
+    :return:
+    """
+    return content if content != "None" else ""

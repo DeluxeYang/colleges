@@ -58,7 +58,7 @@ class YearSeasonMonth(models.Model):
 class BatchOfTable(models.Model):  # 具体到批次的表名
     table = models.ForeignKey(Table, related_name='BatchOfTable')  # 表
     batch = models.ForeignKey(YearSeasonMonth, related_name='BatchOfTable')  # 批次
-    name_cn = models.CharField(max_length=255, null=True, blank=True)  # 名
+    name_cn = models.CharField(max_length=255, null=True, blank=True, unique=True)  # 名
     create_time = models.DateField(null=True, blank=True)  # 创建时间
     excel_file = models.FileField(upload_to='data/excel', null=True, blank=True)
 

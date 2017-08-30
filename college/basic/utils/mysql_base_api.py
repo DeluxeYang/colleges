@@ -6,6 +6,7 @@ import pymysql.cursors
 import os
 import django
 import sys
+import traceback
 
 from basic.utils.logger import logger
 from college.settings import DATABASES
@@ -22,7 +23,7 @@ def sql_init(db_host, db_user, db_passwd, db_name, db_port=3306):
         如果放在conn.cursor()中，应该是参数应该是cursor   modifed by ck
         """
         conn = pymysql.connect(host=db_host, user=db_user, passwd=db_passwd, port=db_port,
-                               cursorclass=pymysql.cursors.DictCursor)  # connect to MySQL
+                               cursorclass=pymysql.cursors.DictCursor, use_unicode=True, charset="utf8")  # connect to MySQL
         cursor = conn.cursor()  # get the cursor
     else:
         # 同上 modifed by ck
@@ -128,7 +129,7 @@ def sql_executemany(conn, cursor, sql, args):
             conn.commit()                   # DELETE, INSERT, UPDATE operations should commit.
     except pymysql.Error as e:
         logger.error("Error %d: %s" % (e.args[0], e.args[1]))
-
+        logger.error(traceback.format_exc())
     return pmkey            # sql-execute results.
 
 
@@ -194,10 +195,32 @@ def drop_tables(cursor, tables_list):
 # Function:  build INSERT orignal SQL: INSERT INTO table (col1, col2, ..) VALUES (%s, %s, ...)
 # Parameter: table: table name; row_data: columns and coresponding values
 # Return:    INSERT orignal SQL
+"""
 def build_insertsql(table, row_data):
     qmarks = ','.join(["%s"] * len(row_data))         # build VALUES sub string: "%s, %s, ..."
     cols = ','.join(row_data.keys())                  # build COLUMNS sub string: "col1, col2, ..."
     sql = "INSERT INTO %s (%s) VALUES (%s)" % (table, cols, qmarks)  # build orginal INSERT SQL with table, columns and %s for values
+    return sql
+"""
+
+
+def build_insertsql(table, row_data):
+    qmarks = ','.join(["%s"] * len(row_data))
+    cols = ','.join(row_data)
+    sql = "INSERT INTO %s (%s) VALUES (%s)" % (table, cols, qmarks)
+    return sql
+
+
+def build_delete_sql(table_name, row_data):
+    sql = "DELETE FROM `%s`" % table_name
+    plus = False
+    for row in row_data:
+        if not plus:
+            sql += " WHERE ("
+            plus = True
+        else:
+            sql += " AND ("
+        sql += (row + "=%s)")
     return sql
 
 

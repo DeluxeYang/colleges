@@ -64,7 +64,7 @@ def test3(request):
     return HttpResponse(json.dumps(result))
 
 
-def test(request):
+def batch(request):
     year = 1800
     for y in range(1900, 2100):
         YearSeasonMonth.objects.create(year=y, type=1)
@@ -73,3 +73,12 @@ def test(request):
         for m in range(1, 13):
             YearSeasonMonth.objects.create(year=y, month=m, type=3)
     return HttpResponse("")
+
+
+def test(request):
+    from basic.utils import mysql_base_api
+    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+    sql = mysql_base_api.build_insertsql("ranking_DwBptz0j_1503994945", {"A": "a", "B": "b"})
+    mysql_base_api.sql_execute(conn, cursor, sql, ("a", "b"))
+    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接

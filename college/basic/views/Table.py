@@ -283,6 +283,14 @@ def table_record_delete(table_name, fields, args):
     db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
     conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
     sql = mysql_base_api.build_delete_sql(table_name, fields)
-    print(sql)
     mysql_base_api.sql_executemany(conn, cursor, sql, args)
     mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+
+
+def read_table_content_by_batch(table_name, fields, args):
+    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+    sql = mysql_base_api.build_select_all_sql(table_name, fields)
+    res = mysql_base_api.sql_execute(None, cursor, sql, args)
+    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+    return res

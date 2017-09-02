@@ -68,4 +68,8 @@ urlpatterns = [
     url(r'^rankings/retrieve/(?P<ranking_id>[0-9]+)/$', ranking.retrieve_rankings),
     url(r'^rankings/delete/$', ranking.delete_rankings),
     url(r'^rankings/batch_delete/$', ranking.batch_delete_ranking_batches),
+
+    url(r'^rankings/content/(?P<batch_id>[0-9]+)/$', ranking.rankings_content_index),
+    url(r'^rankings/content/retrieve/(?P<batch_id>[0-9]+)/$', ranking.retrieve_rankings_content),
+    url(r'^rankings/search/college/$', ranking.rankings_search_pick),
 ]

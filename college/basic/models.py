@@ -262,3 +262,14 @@ class NewsImage(models.Model):
 
     class Meta:
         db_table = 'news_image'
+
+
+class BatchAndCollegeRelation(models.Model):
+    college = models.ForeignKey(College, related_name="BatchAndCollegeRelation")
+    batch = models.ForeignKey(BatchOfTable, related_name="BatchAndCollegeRelation")
+
+    class Meta:
+        db_table = 'batch_and_college'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return str(self.college.name_cn) + "_" + str(self.batch.name_cn)

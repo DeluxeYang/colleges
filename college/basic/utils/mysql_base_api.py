@@ -28,7 +28,7 @@ def sql_init(db_host, db_user, db_passwd, db_name, db_port=3306):
     else:
         # 同上 modifed by ck
         conn = pymysql.connect(host=db_host, user=db_user, passwd=db_passwd, db=db_name,
-                               port=db_port, cursorclass=pymysql.cursors.DictCursor)  # connect to MySQL
+                               port=db_port, cursorclass=pymysql.cursors.DictCursor, use_unicode=True, charset="utf8")  # connect to MySQL
         cursor = conn.cursor()  # get the cursor
     return conn, cursor
 
@@ -213,6 +213,19 @@ def build_insertsql(table, row_data):
 
 def build_delete_sql(table_name, row_data):
     sql = "DELETE FROM `%s`" % table_name
+    plus = False
+    for row in row_data:
+        if not plus:
+            sql += " WHERE ("
+            plus = True
+        else:
+            sql += " AND ("
+        sql += (row + "=%s)")
+    return sql
+
+
+def build_select_all_sql(table_name, row_data):
+    sql = "SELECT * FROM `%s`" % table_name
     plus = False
     for row in row_data:
         if not plus:

@@ -22,6 +22,10 @@ from basic.utils.logger import logger
 SIDEBAR_URL = [
     {"url": "/backend/ranking/", "name": "榜单分类列表", "active": False},
     {"url": "/backend/rankings/", "name": "榜单详细列表", "active": False},
+    {"url": "#", "name": "搜索榜单", "active": False,
+     "drop_down": [
+        {"url": "/backend/rankings/search/college/", "name": "按相关院校搜索", "active": False},
+     ]},
     {"url": "/backend/ranking/add/", "name": "添加榜单", "active": False},
 ]
 
@@ -104,7 +108,7 @@ def add_ranking(request):
             logger.error(str(e))
             messages.error(request, "添加榜单失败")
     urls = copy.deepcopy(SIDEBAR_URL)
-    urls[2]["active"] = True
+    urls[3]["active"] = True
     field_types = TypeOfField.objects.all()
     return render_to_response("backend/ranking/add.html", {
         "self": request.user,
@@ -176,6 +180,8 @@ def rankings_index(request, ranking_id=""):
     urls[1]["active"] = True
     if ranking_id != "":
         ranking_id += "/"
+        if "search_by_college" in request.GET:
+            ranking_id += "?search_by_college=true"
     return render_to_response("backend/ranking/list.html", {
         "self": request.user,
         "urls": urls,
@@ -197,7 +203,7 @@ def format_rankings(batches):
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(batch.id) +
             '" name="news_checkbox" type="checkbox"/></label>',
-            str(batch.table.name_cn),
+            "<a href='/backend/rankings/content/" + str(batch.id) + "/'>" + str(batch.table.name_cn) + "</a>",
             str(batch.batch.text),
             batch.create_time.strftime("%Y-%m-%d"),
             "<a id='row_" + str(batch.id) +
@@ -215,6 +221,11 @@ def retrieve_rankings(request, ranking_id=""):
     """
     if ranking_id == "":
         batches = BatchOfTable.objects.all()
+    elif "search_by_college" in request.GET:  # 此时的ranking_id为college id
+        relations = BatchAndCollegeRelation.objects.filter(college_id=int(ranking_id))
+        batches = []
+        for r in relations:
+            batches.append(r.batch)
     else:
         _ranking = Table.get_table_by_id(int(ranking_id))
         batches = BatchOfTable.objects.filter(table=_ranking)
@@ -283,9 +294,9 @@ def import_ranking(request, ranking_id):
         try:
             _file = request.FILES.get("file_upload")  # 上传的文件
             wb = excel_loader.load_excel(_file)  # 读取excel
-            excel_loader.get_excel_head(wb)
             body = excel_loader.get_excel_body_generator(wb)
             batch = request.POST["extra"]
+            # 先匹配批次
             if batch == "0":
                 _batch = YearSeasonMonth.objects.get(type=0)
             else:
@@ -298,20 +309,23 @@ def import_ranking(request, ranking_id):
                 else:
                     _batch = YearSeasonMonth.objects.get(year=int(year), type=1)
             _ranking = Table.get_table_by_id(int(ranking_id))
+            # 如果已有该批次，则失败
             if BatchOfTable.objects.filter(batch=_batch, table=_ranking).exists():
                 raise IntegrityError("批次重复")
             args = []
+            # 分别处理每行数据
             for record in body:
                 temp_list = [_batch.text.encode('utf-8')]
                 for r in record:
                     r = empty_is_empty_str(r)
                     temp_list.append(r.encode('utf-8'))
                 args.append(tuple(temp_list))
-            fields = ["batch"]
-            Table.insert_table(int(ranking_id), fields, args)
-            BatchOfTable.objects.create(batch=_batch,
-                                        table=_ranking,
-                                        name_cn=str(_ranking.name_cn) + "_" + str(_batch.text))
+            fields = ["batch"]  # 在field中首先添加一个"batch"，其余的fields由下面这个函数添加
+            Table.insert_table(int(ranking_id), fields, args)  # 导入到表
+            batch = BatchOfTable.objects.create(batch=_batch,  # 导入成功，才添加batch
+                                                table=_ranking,
+                                                name_cn=str(_ranking.name_cn) + "_" + str(_batch.text))
+            create_rankings_and_college_relations(_file, batch)  # 建立榜单与学校的关系
             return_dict["success"] = "success"
         except IndexError as e:
             logger.error(str(e))
@@ -348,3 +362,108 @@ def empty_is_empty_str(content):
     :return:
     """
     return content if content != "None" else ""
+
+
+def create_rankings_and_college_relations(excel, batch):
+    """
+    读取每一行记录，从中提取出学校标识码或者学校名称，建立该榜单与学校的联系
+    :param excel:
+    :param batch:
+    :return:
+    """
+    wb = excel_loader.load_excel(excel)  # 读取excel
+    head = excel_loader.get_excel_head(wb)
+    body = excel_loader.get_excel_body_generator(wb)
+    cur_code = -1
+    cur_name_cn = -1
+    if "学校标识码" in head:
+        cur_code = head.index("学校标识码")  # 优先记录学校标识码位置
+    elif "学校名称" in head:
+        cur_name_cn = head.index("学校名称")  # 记录学校名称位置
+    for record in body:
+        try:
+            if cur_code != -1:
+                college = College.objects.get(id_code=record[cur_code])
+                BatchAndCollegeRelation.objects.create(college=college, batch=batch)
+            elif cur_name_cn != -1:
+                college = College.objects.get(name_cn=record[cur_name_cn])
+                BatchAndCollegeRelation.objects.create(college=college, batch=batch)
+        except Exception as e:
+            logger.error(str(e))
+
+
+def rankings_content_index(request, batch_id):
+    """
+
+    :return:
+    """
+    batch = BatchOfTable.objects.get(id=int(batch_id))
+    ranking_fields = Table.get_fields_by_table_id(int(batch.table.id))
+    model_fields = ["#"]
+    for field in ranking_fields:
+        model_fields.append(field.name_cn)
+    urls = copy.deepcopy(SIDEBAR_URL)
+    urls[1]["active"] = True
+    return render_to_response("backend/ranking/ranking_content.html", {
+        "self": request.user,
+        "urls": urls,
+        "fields": model_fields,
+        "title": str(batch.table.name_cn)+"（批次："+str(batch.batch.text)+"）",
+        "get_all_ranking_url": "/backend/rankings/content/retrieve/" + str(batch_id) + "/"
+    }, context_instance=RequestContext(request))
+
+
+def format_rankings_content(ranking_id, res):
+    """
+    格式化列表
+    :return: json
+    """
+    ranking_fields = Table.get_fields_by_table_id(int(ranking_id))
+    _fields = []
+    for filed in ranking_fields:
+        _fields.append(filed.name)
+    return_dict = {"data": []}
+    i = 1
+    for r in res:
+        temp = ['<label>' + str(i) + '</label>']
+        for f in _fields:
+            temp.append(r[f])
+        return_dict["data"].append(temp)
+        i += 1
+    return return_dict
+
+
+def retrieve_rankings_content(request, batch_id):
+    """
+    获取所有信息
+    :return: json
+    """
+    batch = BatchOfTable.objects.get(id=int(batch_id))  # 获取批次
+    fields = ["batch"]
+    args = [batch.batch.text.encode('utf-8')]
+    res = Table.read_table_content_by_batch(batch.table.name, fields, args)
+    return_dict = format_rankings_content(batch.table.id, res)  # 格式化院校信息
+    logger.info("数据库访问次数: " + str(len(connection.queries)))
+    return HttpResponse(json.dumps(return_dict))
+
+
+def rankings_search_pick(request):
+    """
+    筛选院校
+    :return:
+    """
+    model_fields = {"many_to_many": []}
+    if request.method == "POST":
+        return HttpResponseRedirect("/backend/rankings/" + request.POST["college"] + "/?search_by_college=true")
+    model_fields["nation"] = [{"name": "所在地（省级）", "field": "province"},
+                              {"name": "所在地（市级）", "field": "city"}]
+    urls = copy.deepcopy(SIDEBAR_URL)
+    urls[2]["active"] = True
+    return render_to_response("backend/ranking/pick.html",
+                              {
+                                  "self": request.user,
+                                  "fields": model_fields,
+                                  "urls": urls,
+                                  "get_colleges_by_nation_url": "/api/college/by/nation/",
+                              },
+                              context_instance=RequestContext(request))

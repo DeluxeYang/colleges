@@ -86,7 +86,7 @@ DATABASES = {
         'NAME': 'college',
         'USER': 'root',
         'PASSWORD': '123456',
-        'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+        'HOST': 'localhost',  # os.environ['MYSQL_PORT_3306_TCP_ADDR'],
         'PORT': '3306',
     }
 }

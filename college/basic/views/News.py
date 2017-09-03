@@ -4,7 +4,6 @@ import datetime
 
 from basic.models import News, NewsTag, NewsAndTag, NewsComment, NewsAndCollege
 from basic.views.College import *
-from basic.utils.logger import logger
 
 
 def get_all_news():

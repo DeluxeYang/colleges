@@ -77,7 +77,6 @@ def retrieve_ranking(request):
     """
     _ranking = Table.get_all_tables()
     return_dict = format_ranking(_ranking)  # 格式化院校信息
-    logger.info("数据库访问次数: "+str(len(connection.queries)))
     return HttpResponse(json.dumps(return_dict))
 
 
@@ -103,7 +102,7 @@ def add_ranking(request):
             if table_id:
                 return HttpResponseRedirect("/backend/ranking/"+str(table_id)+"/")
             else:
-                raise Exception("添加榜单失败")
+                raise Exception("Add Ranking Failed")
         except Exception as e:
             logger.error(str(e))
             messages.error(request, "添加榜单失败")
@@ -230,7 +229,6 @@ def retrieve_rankings(request, ranking_id=""):
         _ranking = Table.get_table_by_id(int(ranking_id))
         batches = BatchOfTable.objects.filter(table=_ranking)
     return_dict = format_rankings(batches)  # 格式化院校信息
-    logger.info("数据库访问次数: "+str(len(connection.queries)))
     return HttpResponse(json.dumps(return_dict))
 
 
@@ -311,7 +309,7 @@ def import_ranking(request, ranking_id):
             _ranking = Table.get_table_by_id(int(ranking_id))
             # 如果已有该批次，则失败
             if BatchOfTable.objects.filter(batch=_batch, table=_ranking).exists():
-                raise IntegrityError("批次重复")
+                raise IntegrityError(str(_ranking)+str(_batch))
             args = []
             # 分别处理每行数据
             for record in body:
@@ -332,7 +330,7 @@ def import_ranking(request, ranking_id):
             return_dict["error"] = "请选择批次"
         except IntegrityError as e:  # 仅处理重复添加错误
             logger.error(str(e))
-            return_dict["error"] = str(e)
+            return_dict["error"] = "批次重复"
         except Exception as e:
             logger.error(str(e))
             logger.error(traceback.format_exc())
@@ -443,7 +441,6 @@ def retrieve_rankings_content(request, batch_id):
     args = [batch.batch.text.encode('utf-8')]
     res = Table.read_table_content_by_batch(batch.table.name, fields, args)
     return_dict = format_rankings_content(batch.table.id, res)  # 格式化院校信息
-    logger.info("数据库访问次数: " + str(len(connection.queries)))
     return HttpResponse(json.dumps(return_dict))
 
 

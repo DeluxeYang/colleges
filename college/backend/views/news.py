@@ -86,10 +86,9 @@ def retrieve_news(request, param="", digit=""):
             elif param == "college":
                 _news = College.objects.get(id=int(digit)).news_set.all()
     except KeyError:
-        logger.warning("错误访问: "+request.path)
+        logger.warning("Error request: "+request.path)
         _news = []
     return_dict = format_news(_news)  # 格式化院校信息
-    logger.info("数据库访问次数: "+str(len(connection.queries)))
     return HttpResponse(json.dumps(return_dict))
 
 

@@ -1,0 +1,1 @@
+docker run -i -t --name college --link uav_mysql:mysql -v /home/deluxe/docker_college/log:/root/college/college/log -p 28001:8000 -p 8001:80 ubuntu /bin/bash

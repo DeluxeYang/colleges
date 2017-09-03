@@ -140,10 +140,9 @@ def retrieve_colleges(request, param="", digit=""):
                 "area": colleges.filter(area=area)}
             colleges = foreign_switch[param]  # 选择
     except KeyError:
-        logger.warning("错误访问: "+request.path)
+        logger.warning("Error request: "+request.path)
         colleges = []
     return_dict = format_colleges(colleges)  # 格式化院校信息
-    logger.info("数据库访问次数: "+str(len(connection.queries)))
     return HttpResponse(json.dumps(return_dict))
 
 
@@ -436,7 +435,7 @@ def get_nation_code(city):
         nation_code = Nation.objects.get(
             Q(city=city, province="") | Q(district=city, province="", city="")).code
     except ObjectDoesNotExist:
-        logger.error(city + ": 不存在")
+        logger.error(city + "Does not Exist")
     except Exception as e:
         logger.error(str(e) + ": " + city)
     finally:

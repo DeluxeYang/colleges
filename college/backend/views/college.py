@@ -435,7 +435,7 @@ def get_nation_code(city):
         nation_code = Nation.objects.get(
             Q(city=city, province="") | Q(district=city, province="", city="")).code
     except ObjectDoesNotExist:
-        logger.error(city + "Does not Exist")
+        logger.error(city.encode("utf-8") + "Does not Exist")
     except Exception as e:
         logger.error(str(e) + ": " + city)
     finally:
@@ -479,7 +479,7 @@ def import_college(request):
                     name_cn=empty_is_empty(record[temp_dict[model_fields[1]]]),
                     id_code=empty_is_empty(record[temp_dict[model_fields[2]]]),
                     department=get_obj_or_insert_obj(Department, empty_is_empty(record[temp_dict[model_fields[3]]])),
-                    area=Area.objects.get(nation_code_2=nation_code[:2]).name_cn,
+                    area=Area.objects.get(nation_code_2=nation_code[:2]).name_cn if not nation_code == '' else '',
                     province=empty_is_empty(record[temp_dict[model_fields[5]]]),
                     city=empty_is_empty(record[temp_dict[model_fields[6]]]),
                     nation_code=nation_code,

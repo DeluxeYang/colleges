@@ -142,7 +142,7 @@ def retrieve_colleges(request, param="", digit=""):
     except KeyError:
         logger.warning("Error request: "+request.path)
         colleges = []
-    return_dict = format_colleges(colleges)  # 格式化院校信息
+    return_dict = format_colleges(colleges)  # 格式化院校信息.
     return HttpResponse(json.dumps(return_dict))
 
 

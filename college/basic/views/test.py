@@ -76,9 +76,48 @@ def batch(request):
 
 
 def test(request):
-    from basic.utils import mysql_base_api
-    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
-    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
-    sql = mysql_base_api.build_insertsql("ranking_DwBptz0j_1503994945", {"A": "a", "B": "b"})
-    mysql_base_api.sql_execute(conn, cursor, sql, ("a", "b"))
-    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+    from backend.views import college
+    start = datetime.datetime.now()
+
+    colleges = College.objects.all()
+    res = format_colleges(colleges)
+    end = datetime.datetime.now()
+    print((end - start))
+    return HttpResponse(res)
+
+
+def format_colleges(colleges):
+    """
+    获取所有院校信息
+    :return: json
+    """
+    return_dict = {"data": []}
+    i = 1
+    for college in colleges:
+        return_dict["data"].append([
+            '<label>' + str(i) + '<input value="' + str(college.id) +
+            '" name="college_checkbox" type="checkbox"/></label>',
+            college.name_cn,
+            college.id_code,
+            college.department.name_cn,
+            college.area,
+            college.province,
+            college.city,
+            college.edu_level.name_cn,
+            college.edu_class.name_cn,
+            "是" if college.is_vice_ministry else "",
+            "是" if college.is_211 else "",
+            "是" if college.is_985 else "",
+            "是" if college.is_985_platform else "",
+            "是" if college.is_double_first_class else "",
+            college.setup_time.strftime("%Y-%m-%d") if college.setup_time else "",
+            college.cancel_time.strftime("%Y-%m-%d") if college.cancel_time else "",
+            college.note,
+            "是" if college.is_cancelled else "",
+            college.transfer_to,
+            "<a href='/backend/college/modify/" + str(college.id) + "/'>修改</a>",
+            "<a id='row_" + str(college.id) +
+            "' href='javascript:href_ajax(" + str(college.id) + ")'" +
+            " onclick=\"return confirm('确认删除" + college.name_cn + "？')\">删除</a>"])
+        i += 1
+    return return_dict

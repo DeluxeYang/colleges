@@ -219,7 +219,6 @@ def create_table(table, fields):
             sql += _field.name + " " + _type.name
             sql += "(%s)," % _type.size if _type.size else ","  # 如果没有size，则没有括号
         sql += "PRIMARY KEY (id));"  # SQL尾
-        logger.info(sql)  # 输出SQL
         db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
         conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
         res = mysql_base_api.sql_execute(conn, cursor, sql, None)  # 执行SQL语句

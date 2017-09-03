@@ -25,7 +25,7 @@ SECRET_KEY = '*1mc^52z@38=2vcyxt+m7@(4x86*co^k@=m8cw_61x#r_r@d+v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -86,7 +86,7 @@ DATABASES = {
         'NAME': 'college',
         'USER': 'root',
         'PASSWORD': '123456',
-        'HOST': '',
+        'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
         'PORT': '3306',
     }
 }

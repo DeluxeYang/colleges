@@ -8,7 +8,7 @@ import traceback
 from django.db import connection
 from django.db import IntegrityError
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib import messages
 from django.template.context import RequestContext
 from django.shortcuts import render_to_response
@@ -38,3 +38,18 @@ def get_colleges_by_nation(request):
     else:
         return_dict["message"] = "error"
     return HttpResponse(json.dumps(return_dict))
+
+
+def get_all_colleges(request):
+    """
+
+    :param request:
+    :return:
+    """
+    page = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 20))
+    colleges, num_pages = College.get_all_colleges_with_paginator(page, size)
+    return_dict = {"page": colleges.number, "size": size,
+                   "num_pages": num_pages, "type": "colleges", "length": len(colleges),
+                   "data": College.format_colleges_for_api(colleges)}
+    return JsonResponse(return_dict)

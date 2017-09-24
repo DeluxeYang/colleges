@@ -18,6 +18,8 @@ from api.views import college, news
 
 
 urlpatterns = [
+    # colleges
+    url(r'^college/$', college.get_all_colleges),
     url(r'^college/by/nation/$', college.get_colleges_by_nation),
 
     url(r'^news/image_upload/$', news.image_upload),

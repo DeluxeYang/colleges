@@ -14,11 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import url
-from backend.views import index, college, news, ranking
+from backend.views import index, college, news, ranking, professor
 
 
 urlpatterns = [
     url(r'^$', index.index),
+
+    ######################################################################
     # college
     url(r'^college/$', college.index),
     url(r'^college/search/(?P<param>[a-zA-Z0-9_]+)/$', college.index),
@@ -35,6 +37,8 @@ urlpatterns = [
     url(r'^college/batch_delete/$', college.batch_delete_college),
     url(r'^college/import/$', college.import_college),
     url(r'^college/clean/$', college.clean_college),
+
+    ######################################################################
     # news
     url(r'^news/$', news.index),
     url(r'^news/search/(?P<param>[a-zA-Z0-9_]+)/$', news.index),
@@ -51,6 +55,8 @@ urlpatterns = [
     url(r'^news/modify/(?P<news_id>[0-9]+)/$', news.modify_news),
     url(r'^news/delete/$', news.delete_news),
     url(r'^news/batch_delete/$', news.batch_delete_news),
+
+    ######################################################################
     # ranking
     url(r'^ranking/$', ranking.index),
     url(r'^ranking/retrieve/$', ranking.retrieve_ranking),
@@ -72,4 +78,13 @@ urlpatterns = [
     url(r'^rankings/content/(?P<batch_id>[0-9]+)/$', ranking.rankings_content_index),
     url(r'^rankings/content/retrieve/(?P<batch_id>[0-9]+)/$', ranking.retrieve_rankings_content),
     url(r'^rankings/search/college/$', ranking.rankings_search_pick),
+
+    ######################################################################
+    # professor
+    url(r'^professor/$', professor.index),
+    url(r'^professor/retrieve/$', professor.retrieve_professor),
+    # url(r'^ranking/(?P<ranking_id>[0-9]+)/$', ranking.get_ranking),
+
+    # url(r'^professors/$', professor.professors_index),
+    # url(r'^professors/retrieve/$', professor.retrieve_professors),
 ]

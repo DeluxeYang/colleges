@@ -21,7 +21,7 @@ from basic.utils.logger import logger
 
 SIDEBAR_URL = [
     {"url": "/backend/ranking/", "name": "榜单分类列表", "active": False},
-    {"url": "/backend/rankings/", "name": "榜单详细列表", "active": False},
+    {"url": "/backend/rankings/", "name": "榜单批次列表", "active": False},
     {"url": "#", "name": "搜索榜单", "active": False,
      "drop_down": [
         {"url": "/backend/rankings/search/college/", "name": "按相关院校搜索", "active": False},
@@ -38,13 +38,14 @@ def index(request):
     model_fields = ["#", "榜单名  (点击查看该榜单各批次)", "榜单字段", "创建时间", "由excel导入数据", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[0]["active"] = True
-    return render_to_response("backend/ranking/list.html", {
+    return render_to_response("backend/list.html", {
         "self": request.user,
         "urls": urls,
         "fields": model_fields,
-        "ranking_delete_url": "/backend/ranking/delete/",
-        "ranking_batch_delete_url": "/backend/ranking/batch_delete/",
-        "get_all_ranking_url": "/backend/ranking/retrieve/"
+        "title": "榜单分类列表",
+        "delete_url": "/backend/ranking/delete/",
+        "batch_delete_url": "/backend/ranking/batch_delete/",
+        "get_all_data_url": "/backend/ranking/retrieve/"
     }, context_instance=RequestContext(request))
 
 
@@ -75,7 +76,7 @@ def retrieve_ranking(request):
     获取所有信息
     :return: json
     """
-    _ranking = Table.get_all_tables()
+    _ranking = Table.get_tables_by_type_id(1)
     return_dict = format_ranking(_ranking)  # 格式化院校信息
     return HttpResponse(json.dumps(return_dict))
 
@@ -181,13 +182,14 @@ def rankings_index(request, ranking_id=""):
         ranking_id += "/"
         if "search_by_college" in request.GET:
             ranking_id += "?search_by_college=true"
-    return render_to_response("backend/ranking/list.html", {
+    return render_to_response("backend/list.html", {
         "self": request.user,
         "urls": urls,
         "fields": model_fields,
-        "ranking_delete_url": "/backend/rankings/delete/",
-        "ranking_batch_delete_url": "/backend/rankings/batch_delete/",
-        "get_all_ranking_url": "/backend/rankings/retrieve/"+ranking_id
+        "title": "榜单批次列表",
+        "delete_url": "/backend/rankings/delete/",
+        "batch_delete_url": "/backend/rankings/batch_delete/",
+        "get_all_data_url": "/backend/rankings/retrieve/"+ranking_id
     }, context_instance=RequestContext(request))
 
 

@@ -7,7 +7,7 @@
     <div class="panel panel-default">
         <div class="panel panel-default">
             <div class="panel-heading">
-                院校信息
+                {{ title }}
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
@@ -24,8 +24,10 @@
             </div>
         </div>
     </div>
+{% if batch_delete_url %}
 <input class="btn btn-success" type="button" id="all_checked" name="all_checked" value="全选" onclick="checkedAll()" />
 <input class="btn btn-danger" id="id_batch_delete" name="batch_delete" type="button" onclick="return batchdel()" value="批量删除"/>
+{% endif %}
 </div>
 
 <script src="/static/js/dataTables/jquery.dataTables.js"></script>
@@ -33,7 +35,7 @@
 <script>
 $(document).ready(function () {
     $('#dataTables-example').DataTable( {
-        "ajax": '{{ get_all_college_url }}'
+        "ajax": '{{ get_all_data_url }}'
     } );
 });
 function getCookie(name) {
@@ -48,8 +50,8 @@ function getCookie(name) {
 function href_ajax(_id) {
     $.ajax({
         type: "post",
-        url: "{{ college_delete_url }}",
-        data: {"college_id": _id, "csrfmiddlewaretoken": getCookie('csrftoken')},
+        url: "{{ delete_url }}",
+        data: {"ranking_id": _id, "csrfmiddlewaretoken": getCookie('csrftoken')},
         dataType:"json",
         success: function(data)  {
             var _table = $('#dataTables-example').DataTable();
@@ -62,10 +64,9 @@ function href_ajax(_id) {
         }
     });
 }
-
-function batchdel()
-{
-    var checkbox = document.getElementsByName("college_checkbox");
+{% if batch_delete_url %}
+function batchdel() {
+    var checkbox = document.getElementsByName("news_checkbox");
     var number = 0;
     var temp = new Array();
     if (checkbox.length != 0){
@@ -82,8 +83,8 @@ function batchdel()
             if (confirm(txt)){
                 $.ajax({
                     type: "post",
-                    url: "{{ college_batch_delete_url }}",
-                    data: {"college_ids": temp, "csrfmiddlewaretoken": getCookie('csrftoken')},
+                    url: "{{ batch_delete_url }}",
+                    data: {"ranking_ids": temp, "csrfmiddlewaretoken": getCookie('csrftoken')},
                     dataType:"json",
                     success: function(data)  {
                         var _table = $('#dataTables-example').DataTable();
@@ -119,12 +120,13 @@ function checkedAll()
             document.getElementById('all_checked').value = '全选';
             checked = false;
         }
-    var allcheck=document.getElementsByName("college_checkbox");
+    var allcheck=document.getElementsByName("news_checkbox");
     for(var i = 0;i<allcheck.length;i++)
         {
             allcheck[i].checked = checked;
         }
 }
+{% endif %}
 </script>
 
 {% endblock %}

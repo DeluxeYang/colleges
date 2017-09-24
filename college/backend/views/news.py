@@ -39,16 +39,15 @@ def index(request, param="", digit=""):
         urls[1]["active"] = True
     else:
         urls[0]["active"] = True
-    return render_to_response("backend/news/list.html",
-                              {
-                                  "self": request.user,
-                                  "fields": model_fields,
-                                  "urls": urls,
-                                  "news_delete_url": "/backend/news/delete/",
-                                  "news_batch_delete_url": "/backend/news/batch_delete/",
-                                  "get_all_news_url": "/backend/news/retrieve/"+param
-                              },
-                              context_instance=RequestContext(request))
+    return render_to_response("backend/list.html", {
+        "self": request.user,
+        "fields": model_fields,
+        "urls": urls,
+        "title": "新闻列表",
+        "delete_url": "/backend/news/delete/",
+        "batch_delete_url": "/backend/news/batch_delete/",
+        "get_all_data_url": "/backend/news/retrieve/"+param
+    }, context_instance=RequestContext(request))
 
 
 def format_news(news):

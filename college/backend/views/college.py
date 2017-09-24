@@ -62,16 +62,14 @@ def index(request, param="", digit=""):
         urls[1]["active"] = True
     else:
         urls[0]["active"] = True
-    return render_to_response("backend/college/list.html",
-                              {
-                                  "self": request.user,
-                                  "fields": model_fields,
-                                  "urls": urls,
-                                  "college_delete_url": "/backend/college/delete/",
-                                  "college_batch_delete_url": "/backend/college/batch_delete/",
-                                  "get_all_college_url": "/backend/college/retrieve/"+param
-                              },
-                              context_instance=RequestContext(request))
+    return render_to_response("backend/list.html", {
+        "self": request.user,
+        "fields": model_fields,
+        "urls": urls,
+        "title": "院校列表",
+        "delete_url": "/backend/college/delete/",
+        "get_all_data_url": "/backend/college/retrieve/"+param
+    }, context_instance=RequestContext(request))
 
 
 def format_colleges(colleges):

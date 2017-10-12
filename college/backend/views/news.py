@@ -12,6 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.template.context import RequestContext
 
+from basic.utils import common
 from basic.utils.logger import logger
 from basic.models import News, NewsAndTag, NewsTag, NewsAndCollege, College
 from basic.views.News import get_all_news, get_news_by_id, create_news, update_news
@@ -50,13 +51,13 @@ def index(request, param="", digit=""):
     }, context_instance=RequestContext(request))
 
 
-def format_news(news):
+def format_news(news, page, size):
     """
     格式化新闻列表
     :return: json
     """
     return_dict = {"data": []}
-    i = 1
+    i = (page - 1) * size + 1
     for _news in news:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(_news.id) +
@@ -87,7 +88,11 @@ def retrieve_news(request, param="", digit=""):
     except KeyError:
         logger.warning("Error request: "+request.path)
         _news = []
-    return_dict = format_news(_news)  # 格式化院校信息
+    page = request.GET.get("page", 1)
+    size = request.GET.get("size", 200)
+    content, num_pages = common.with_paginator(_news, int(page), int(size))
+    return_dict = format_news(content, int(page), int(size))  # 格式化院校信息
+    return_dict["num_pages"] = num_pages
     return HttpResponse(json.dumps(return_dict))
 
 

@@ -14,6 +14,7 @@ from django.template.context import RequestContext
 from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
 
+from basic.utils import common
 from basic.models import *
 from basic.views import Table
 from basic.utils import excel_loader
@@ -49,13 +50,13 @@ def index(request):
     }, context_instance=RequestContext(request))
 
 
-def format_ranking(ranking):
+def format_ranking(ranking, page, size):
     """
     格式化列表
     :return: json
     """
     return_dict = {"data": []}
-    i = 1
+    i = (page - 1) * size + 1
     for _ranking in ranking:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(_ranking.id) +
@@ -77,7 +78,11 @@ def retrieve_ranking(request):
     :return: json
     """
     _ranking = Table.get_tables_by_type_id(1)
-    return_dict = format_ranking(_ranking)  # 格式化院校信息
+    page = request.GET.get("page", 1)
+    size = request.GET.get("size", 200)
+    content, num_pages = common.with_paginator(_ranking, int(page), int(size))
+    return_dict = format_ranking(content, int(page), int(size))  # 格式化院校信息
+    return_dict["num_pages"] = num_pages
     return HttpResponse(json.dumps(return_dict))
 
 
@@ -193,13 +198,13 @@ def rankings_index(request, ranking_id=""):
     }, context_instance=RequestContext(request))
 
 
-def format_rankings(batches):
+def format_rankings(batches, page, size):
     """
     格式化列表
     :return: json
     """
     return_dict = {"data": []}
-    i = 1
+    i = (page - 1) * size + 1
     for batch in batches:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(batch.id) +
@@ -230,7 +235,11 @@ def retrieve_rankings(request, ranking_id=""):
     else:
         _ranking = Table.get_table_by_id(int(ranking_id))
         batches = BatchOfTable.objects.filter(table=_ranking)
-    return_dict = format_rankings(batches)  # 格式化院校信息
+    page = request.GET.get("page", 1)
+    size = request.GET.get("size", 200)
+    content, num_pages = common.with_paginator(batches, int(page), int(size))
+    return_dict = format_rankings(content, int(page), int(size))  # 格式化院校信息
+    return_dict["num_pages"] = num_pages
     return HttpResponse(json.dumps(return_dict))
 
 

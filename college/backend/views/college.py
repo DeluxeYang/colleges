@@ -5,7 +5,7 @@ import json
 import datetime
 import traceback
 
-from django.db import connection
+# from django.db import connection
 from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
@@ -18,6 +18,7 @@ from basic.models import College as College_model, Nation, Department, EduLevel,
 from basic.views import College
 from basic.utils import excel_loader
 from basic.utils.logger import logger
+from basic.utils import common
 
 SIDEBAR_URL = [
     {"url": "/backend/college/", "name": "院校信息", "active": False},
@@ -72,13 +73,13 @@ def index(request, param="", digit=""):
     }, context_instance=RequestContext(request))
 
 
-def format_colleges(colleges):
+def format_colleges(colleges, page, size):
     """
     获取所有院校信息
     :return: json
     """
     return_dict = {"data": []}
-    i = 1
+    i = (page - 1) * size + 1
     for college in colleges:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(college.id) +
@@ -140,7 +141,11 @@ def retrieve_colleges(request, param="", digit=""):
     except KeyError:
         logger.warning("Error request: "+request.path)
         colleges = []
-    return_dict = format_colleges(colleges)  # 格式化院校信息.
+    page = request.GET.get("page", 1)
+    size = request.GET.get("size", 200)
+    content, num_pages = common.with_paginator(colleges, int(page), int(size))
+    return_dict = format_colleges(content, int(page), int(size))  # 格式化院校信息
+    return_dict["num_pages"] = num_pages
     return HttpResponse(json.dumps(return_dict))
 
 

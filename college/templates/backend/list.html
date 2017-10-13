@@ -94,7 +94,7 @@ function href_ajax(_id) {
     $.ajax({
         type: "post",
         url: "{{ delete_url }}",
-        data: {"ranking_id": _id, "csrfmiddlewaretoken": getCookie('csrftoken')},
+        data: {"_id": _id, "csrfmiddlewaretoken": getCookie('csrftoken')},
         dataType:"json",
         success: function(data)  {
             var _table = $('#dataTables-example').DataTable();
@@ -109,7 +109,7 @@ function href_ajax(_id) {
 }
 {% if batch_delete_url %}
 function batchdel() {
-    var checkbox = document.getElementsByName("news_checkbox");
+    var checkbox = document.getElementsByName("_checkbox");
     var number = 0;
     var temp = new Array();
     if (checkbox.length != 0){
@@ -127,7 +127,7 @@ function batchdel() {
                 $.ajax({
                     type: "post",
                     url: "{{ batch_delete_url }}",
-                    data: {"ranking_ids": temp, "csrfmiddlewaretoken": getCookie('csrftoken')},
+                    data: {"_ids": temp, "csrfmiddlewaretoken": getCookie('csrftoken')},
                     dataType:"json",
                     success: function(data)  {
                         var _table = $('#dataTables-example').DataTable();
@@ -163,7 +163,7 @@ function checkedAll()
             document.getElementById('all_checked').value = '全选';
             checked = false;
         }
-    var allcheck=document.getElementsByName("news_checkbox");
+    var allcheck=document.getElementsByName("_checkbox");
     for(var i = 0;i<allcheck.length;i++)
         {
             allcheck[i].checked = checked;

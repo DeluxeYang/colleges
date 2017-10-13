@@ -14,11 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import url
-from backend.views import index, college, news, ranking, professor
+from backend.views import college, news, ranking, professor
 
 
 urlpatterns = [
-    url(r'^$', index.index),
+    url(r'^$', news.index),
 
     ######################################################################
     # college
@@ -83,8 +83,22 @@ urlpatterns = [
     # professor
     url(r'^professor/$', professor.index),
     url(r'^professor/retrieve/$', professor.retrieve_professor),
-    # url(r'^ranking/(?P<ranking_id>[0-9]+)/$', ranking.get_ranking),
+    url(r'^professor/(?P<professor_id>[0-9]+)/$', professor.get_professor_ranking),
 
-    # url(r'^professors/$', professor.professors_index),
-    # url(r'^professors/retrieve/$', professor.retrieve_professors),
+    url(r'^professor/import/(?P<professor_id>[0-9]+)/$', professor.import_professor),
+
+    url(r'^professor/add/$', professor.add_professor_ranking),
+    url(r'^professor/delete/$', professor.delete_professor_ranking),
+    url(r'^professor/batch_delete/$', professor.batch_delete_professor_ranking),
+
+    url(r'^professors/$', professor.professors_index),
+    url(r'^professors/retrieve/$', professor.retrieve_professors),
+    url(r'^professors/(?P<professor_id>[0-9]+)/$', professor.professors_index),
+    url(r'^professors/retrieve/(?P<professor_id>[0-9]+)/$', professor.retrieve_professors),
+    url(r'^professors/delete/$', professor.delete_professors),
+    url(r'^professors/batch_delete/$', professor.batch_delete_professors),
+
+    url(r'^professors/content/(?P<batch_id>[0-9]+)/$', professor.professors_content_index),
+    url(r'^professors/content/retrieve/(?P<batch_id>[0-9]+)/$', professor.retrieve_professors_content),
+    url(r'^professors/search/college/$', professor.professors_search_pick),
 ]

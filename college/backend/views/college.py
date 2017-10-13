@@ -83,7 +83,7 @@ def format_colleges(colleges, page, size):
     for college in colleges:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(college.id) +
-            '" name="college_checkbox" type="checkbox"/></label>',
+            '" name="_checkbox" type="checkbox"/></label>',
             college.name_cn,
             college.id_code,
             college.department.name_cn,
@@ -352,7 +352,7 @@ def batch_delete_college(request):
     """
     return_dict = {}
     try:
-        delete_list = request.POST.getlist("college_ids[]")
+        delete_list = request.POST.getlist("_ids[]")
         College_model.objects.filter(id__in=delete_list).delete()
         return_dict["success"] = "删除成功"
     except Exception as e:
@@ -370,7 +370,7 @@ def delete_college(request):
     """
     return_dict = {}
     try:
-        College_model.objects.get(id=int(request.POST["college_id"])).delete()
+        College_model.objects.get(id=int(request.POST["_id"])).delete()
         return_dict["success"] = "删除成功"
     except Exception as e:
         logger.error(str(e))

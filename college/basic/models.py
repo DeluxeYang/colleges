@@ -61,6 +61,7 @@ class BatchOfTable(models.Model):  # 具体到批次的表名
     name_cn = models.CharField(max_length=255, null=True, blank=True, unique=True)  # 名
     create_time = models.DateField(null=True, blank=True)  # 创建时间
     excel_file = models.FileField(upload_to='data/excel', null=True, blank=True)
+    type = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'batch_of_table'
@@ -70,6 +71,7 @@ class BatchOfTable(models.Model):  # 具体到批次的表名
 
     def save(self, *args, **kwargs):
         self.create_time = datetime.datetime.now().date()
+        self.type = self.table.type.id
         super().save(*args, **kwargs)
 
 
@@ -267,9 +269,14 @@ class NewsImage(models.Model):
 class BatchAndCollegeRelation(models.Model):
     college = models.ForeignKey(College, related_name="BatchAndCollegeRelation")
     batch = models.ForeignKey(BatchOfTable, related_name="BatchAndCollegeRelation")
+    type = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'batch_and_college'
 
     def __str__(self):  # __unicode__ on Python 2
         return str(self.college.name_cn) + "_" + str(self.batch.name_cn)
+
+    def save(self, *args, **kwargs):
+        self.type = self.batch.type
+        super().save(*args, **kwargs)

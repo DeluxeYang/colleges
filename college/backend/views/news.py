@@ -61,7 +61,7 @@ def format_news(news, page, size):
     for _news in news:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(_news.id) +
-            '" name="news_checkbox" type="checkbox"/></label>',
+            '" name="_checkbox" type="checkbox"/></label>',
             "<a href='/backend/news/" + str(_news.id) + "/'>" + _news.title + "</a>",
             str(_news.user),
             _news.create_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -262,7 +262,7 @@ def batch_delete_news(request):
     """
     return_dict = {}
     try:
-        delete_list = request.POST.getlist("news_ids[]")
+        delete_list = request.POST.getlist("_ids[]")
         News.objects.filter(id__in=delete_list).delete()
         return_dict["success"] = "删除成功"
     except Exception as e:
@@ -280,7 +280,7 @@ def delete_news(request):
     """
     return_dict = {}
     try:
-        News.objects.get(id=int(request.POST["news_id"])).delete()
+        News.objects.get(id=int(request.POST["_id"])).delete()
         return_dict["success"] = "删除成功"
     except Exception as e:
         logger.error(str(e))

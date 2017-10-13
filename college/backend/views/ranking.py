@@ -60,7 +60,7 @@ def format_ranking(ranking, page, size):
     for _ranking in ranking:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(_ranking.id) +
-            '" name="news_checkbox" type="checkbox"/></label>',
+            '" name="_checkbox" type="checkbox"/></label>',
             "<a href='/backend/rankings/" + str(_ranking.id) + "/'>" + _ranking.name_cn + "</a>",
             "<a href='/backend/ranking/" + str(_ranking.id) + "/'>查看字段</a>",
             _ranking.create_time.strftime("%Y-%m-%d"),
@@ -147,7 +147,7 @@ def batch_delete_ranking(request):
     """
     return_dict = {}
     try:
-        delete_list = request.POST.getlist("ranking_ids[]")
+        delete_list = request.POST.getlist("_ids[]")
         for i in delete_list:
             Table.drop_table(int(i))
         return_dict["success"] = "删除成功"
@@ -166,7 +166,7 @@ def delete_ranking(request):
     """
     return_dict = {}
     try:
-        Table.drop_table(int(request.POST["ranking_id"]))
+        Table.drop_table(int(request.POST["_id"]))
         return_dict["success"] = "删除成功"
     except Exception as e:
         logger.error(str(e))
@@ -208,7 +208,7 @@ def format_rankings(batches, page, size):
     for batch in batches:
         return_dict["data"].append([
             '<label>' + str(i) + '<input value="' + str(batch.id) +
-            '" name="news_checkbox" type="checkbox"/></label>',
+            '" name="_checkbox" type="checkbox"/></label>',
             "<a href='/backend/rankings/content/" + str(batch.id) + "/'>" + str(batch.table.name_cn) + "</a>",
             str(batch.batch.text),
             batch.create_time.strftime("%Y-%m-%d"),
@@ -226,12 +226,15 @@ def retrieve_rankings(request, ranking_id=""):
     :return: json
     """
     if ranking_id == "":
-        batches = BatchOfTable.objects.all()
+        batches = BatchOfTable.objects.filter(type=1)
     elif "search_by_college" in request.GET:  # 此时的ranking_id为college id
-        relations = BatchAndCollegeRelation.objects.filter(college_id=int(ranking_id))
+        relations = BatchAndCollegeRelation.objects.filter(type=1).filter(college_id=int(ranking_id))
         batches = []
+        no_repeat = {}
         for r in relations:
-            batches.append(r.batch)
+            if r.batch.id not in no_repeat:
+                no_repeat[r.batch.id] = 1
+                batches.append(r.batch)
     else:
         _ranking = Table.get_table_by_id(int(ranking_id))
         batches = BatchOfTable.objects.filter(table=_ranking)
@@ -250,7 +253,7 @@ def batch_delete_ranking_batches(request):
     """
     return_dict = {}
     try:
-        delete_list = request.POST.getlist("ranking_ids[]")
+        delete_list = request.POST.getlist("_ids[]")
         batches = BatchOfTable.objects.filter(id__in=delete_list)
         _fields = ["batch"]
         _args = []
@@ -279,7 +282,7 @@ def delete_rankings(request):
     """
     return_dict = {}
     try:
-        delete_batch = int(request.POST["ranking_id"])
+        delete_batch = int(request.POST["_id"])
         batch = BatchOfTable.objects.get(id=delete_batch)
         _args = [(batch.batch.text.encode('utf-8',))]
         _fields = ["batch"]

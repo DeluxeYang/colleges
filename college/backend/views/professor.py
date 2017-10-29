@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib import messages
 from django.shortcuts import render
+from django.core.exceptions import ObjectDoesNotExist
 
 from basic.utils import common
 from basic.models import *
@@ -310,8 +311,11 @@ def import_professor(request, professor_id):
                 professor = Professor.objects.create(batch=_batch, data=data)
                 if cur != -1:  # 字段中存在“学校名称”或者“学校标识码”，则建立与对应学校之间的关系
                     param = record[cur]  # “学校名称”或者“学校标识码”对应字段
-                    college = College.objects.get(Q(name_cn=param) | Q(id_code=param))  # 找到该学校
-                    ProfessorAndCollegeRelation.objects.create(college=college, professor=professor)  # 建立该字段与学校之间的关系
+                    try:
+                        college = College.objects.get(Q(name_cn=param) | Q(id_code=param))  # 找到该学校
+                        ProfessorAndCollegeRelation.objects.create(college=college, professor=professor)  # 建立该字段与学校之间的关系
+                    except ObjectDoesNotExist:
+                        logger.warning(param+"不存在")
             return_dict["success"] = "success"
         except IndexError as e:
             logger.error(str(e))

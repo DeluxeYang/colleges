@@ -1,6 +1,10 @@
-django==1.8.1
+django
 pymysql
 mysqlclient
 pillow
 django_cleanup
 openpyxl
+djangorestframework
+markdown
+django-filter
+psycopg2

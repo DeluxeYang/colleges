@@ -73,7 +73,7 @@ urlpatterns = [
     url(r'^rankings/(?P<ranking_id>[0-9]+)/$', ranking.rankings_index),
     url(r'^rankings/retrieve/(?P<ranking_id>[0-9]+)/$', ranking.retrieve_rankings),
     url(r'^rankings/delete/$', ranking.delete_rankings),
-    url(r'^rankings/batch_delete/$', ranking.batch_delete_ranking_batches),
+    url(r'^rankings/batch_delete/$', ranking.batch_delete_rankings_batches),
 
     url(r'^rankings/content/(?P<batch_id>[0-9]+)/$', ranking.rankings_content_index),
     url(r'^rankings/content/retrieve/(?P<batch_id>[0-9]+)/$', ranking.retrieve_rankings_content),
@@ -83,20 +83,20 @@ urlpatterns = [
     # professor
     url(r'^professor/$', professor.index),
     url(r'^professor/retrieve/$', professor.retrieve_professor),
-    url(r'^professor/(?P<professor_id>[0-9]+)/$', professor.get_professor_ranking),
+    url(r'^professor/(?P<professor_id>[0-9]+)/$', professor.get_professor),
 
     url(r'^professor/import/(?P<professor_id>[0-9]+)/$', professor.import_professor),
 
-    url(r'^professor/add/$', professor.add_professor_ranking),
-    url(r'^professor/delete/$', professor.delete_professor_ranking),
-    url(r'^professor/batch_delete/$', professor.batch_delete_professor_ranking),
+    url(r'^professor/add/$', professor.add_professor),
+    url(r'^professor/delete/$', professor.delete_professor),
+    url(r'^professor/batch_delete/$', professor.batch_delete_professor),
 
     url(r'^professors/$', professor.professors_index),
     url(r'^professors/retrieve/$', professor.retrieve_professors),
     url(r'^professors/(?P<professor_id>[0-9]+)/$', professor.professors_index),
     url(r'^professors/retrieve/(?P<professor_id>[0-9]+)/$', professor.retrieve_professors),
     url(r'^professors/delete/$', professor.delete_professors),
-    url(r'^professors/batch_delete/$', professor.batch_delete_professors),
+    url(r'^professors/batch_delete/$', professor.batch_delete_professors_batches),
 
     url(r'^professors/content/(?P<batch_id>[0-9]+)/$', professor.professors_content_index),
     url(r'^professors/content/retrieve/(?P<batch_id>[0-9]+)/$', professor.retrieve_professors_content),

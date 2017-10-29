@@ -7,11 +7,8 @@ import time
 import random
 import string
 
-from django.db import IntegrityError
 from django.db.models import Q
 
-from basic.utils.logger import logger
-from basic.utils import mysql_base_api
 from basic.models import *
 
 
@@ -132,56 +129,6 @@ def get_fields_by_table_id(table_id):
     return Field.objects.filter(table_id=table_id)
 
 
-def get_all_field_types():
-    """
-    返回所有【字段类型】
-    :return:
-    """
-    return TypeOfField.objects.all()
-
-
-def get_field_type_by_id(_id):
-    """
-    按【ID】返回所有【字段类型】
-    :return:
-    """
-    return TypeOfField.objects.get(id=_id)
-
-
-def get_field_type_by_name(name):
-    """
-    按【名称】返回所有【字段类型】
-    :return:
-    """
-    return TypeOfField.objects.get(name=name)
-
-
-def get_field_type_by_name_or_id(param):
-    """
-    按【名称】返回所有【字段类型】
-    :return:
-    """
-    if isinstance(param, int):
-        field_type = get_field_type_by_id(param)
-    elif isinstance(param, str):
-        field_type = get_field_type_by_name(param)
-    else:
-        raise TypeError("Not a id or name")
-    return field_type
-
-
-def get_field_types_size():
-    """
-    返回【字段类型】的预定义【size】
-    :return: {varchar：30}
-    """
-    field_types_size = {}
-    field_types = get_all_field_types()
-    for field_type in field_types:
-        field_types_size[field_type.name] = field_type.size
-    return field_types_size
-
-
 def get_random_name(temp_dict=None):
     while True:
         salt = ''.join(random.sample(string.ascii_letters + string.digits, 8))
@@ -194,102 +141,179 @@ def get_random_name(temp_dict=None):
 
 def create_table(table, fields):
     """
-    添加【表】及【表的字段】
-    :param table: {table_name_cn,table_type}
-    :param fields: [{field_name_cn,field_type}
+    创建表，同时创建表的字段
+    :param table: 表{}
+    :param fields: 字段[]
     :return:
     """
-    result = False
-    try:
-        _table = Table.objects.create(  # 先建立表
-            name="ranking_" + get_random_name(),
-            name_cn=table["table_name_cn"],
-            type=get_table_type_by_id_or_name(table["table_type"]))  # 表类型的数据可以为名称也可以为ID，外键：TypeOfTable
-        sql = "CREATE TABLE " + _table.name + "(" \
-              + "id int(10) unsigned NOT NULL AUTO_INCREMENT," \
-              + "batch varchar(255),"
-        temp_dict = {}
-        for field in fields:
-            _type = get_field_type_by_name_or_id(field["field_type"])  # 字段类型数据可以为名称也可以为ID
-            _field = Field.objects.create(
-                name="field_" + get_random_name(temp_dict),
-                name_cn=field["field_name_cn"],
-                type=_type,  # 外键：TypeOfField
-                table=_table)  # 外键：Table
-            sql += _field.name + " " + _type.name
-            sql += "(%s)," % _type.size if _type.size else ","  # 如果没有size，则没有括号
-        sql += "PRIMARY KEY (id));"  # SQL尾
-        db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
-        conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
-        res = mysql_base_api.sql_execute(conn, cursor, sql, None)  # 执行SQL语句
-        mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
-        if res != ():
-            raise Exception(res)
-        result = _table.id
-    except IntegrityError as e:  # 仅处理重复添加错误
-        logger.error(str(e))
-    finally:
-        return result
+    table_type = TypeOfTable.objects.get(id=table["type"])
+    _table = Table.objects.create(type=table_type, name_cn=table["name_cn"])
+    for _field in fields:
+        Field.objects.create(table=_table, name_cn=_field)
+    return _table.id
 
 
-def drop_table(table):
-    """
-    删除【表】及【表的字段】
-    :param table: table_name or table_name_cn or table_type
-    :return:
-    """
-    result = False
-    try:
-        _table = get_table_by_id_or_name(table)
-        try:
-            tables_list = [_table.name]
-            db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
-            conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
-            mysql_base_api.drop_tables(cursor, tables_list)
-            mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
-        except Exception as e:
-            logger.error(str(e))
-        get_fields_by_table_id(_table.id).delete()
-        _table.delete()
-        result = True
-    except Exception as e:  # 仅处理重复添加错误
-        logger.error(str(e))
-    finally:
-        return result
+def delete_table(table_id):
+    table = get_table_by_id(int(table_id))
+    Field.objects.filter(table=table).delete()
+    if table.type == 1:
+        Ranking.objects.filter(table=table).delete()
+    else:
+        Professor.objects.filter(table=table).delete()
+    BatchOfTable.objects.filter(table=table).delete()
+    table.delete()
 
-
-def insert_table(table_id, fields, args):
-    """
-
-    :return:
-    """
-    _table = get_table_by_id(int(table_id))
-    _fields = get_fields_by_table_id(int(table_id))
-    for field in _fields:
-        fields.append(field.name)
-    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
-    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
-    sql = mysql_base_api.build_insertsql(_table.name, fields)
-    mysql_base_api.sql_executemany(conn, cursor, sql, args)
-    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
-
-
-def table_record_delete(table_name, fields, args):
-    """
-
-    :return:
-    """
-    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
-    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
-    sql = mysql_base_api.build_delete_sql(table_name, fields)
-    mysql_base_api.sql_executemany(conn, cursor, sql, args)
-    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
-
-
-def read_table_content_by_batch(table_name, fields, args):
-    db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
-    conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
-    sql = mysql_base_api.build_select_all_sql(table_name, fields)
-    res = mysql_base_api.sql_execute(None, cursor, sql, args)
-    mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
-    return res
+#
+#
+# def get_all_field_types():
+#     """
+#     返回所有【字段类型】
+#     :return:
+#     """
+#     return TypeOfField.objects.all()
+#
+#
+# def get_field_type_by_id(_id):
+#     """
+#     按【ID】返回所有【字段类型】
+#     :return:
+#     """
+#     return TypeOfField.objects.get(id=_id)
+#
+#
+# def get_field_type_by_name(name):
+#     """
+#     按【名称】返回所有【字段类型】
+#     :return:
+#     """
+#     return TypeOfField.objects.get(name=name)
+#
+#
+# def get_field_type_by_name_or_id(param):
+#     """
+#     按【名称】返回所有【字段类型】
+#     :return:
+#     """
+#     if isinstance(param, int):
+#         field_type = get_field_type_by_id(param)
+#     elif isinstance(param, str):
+#         field_type = get_field_type_by_name(param)
+#     else:
+#         raise TypeError("Not a id or name")
+#     return field_type
+#
+#
+# def get_field_types_size():
+#     """
+#     返回【字段类型】的预定义【size】
+#     :return: {varchar：30}
+#     """
+#     field_types_size = {}
+#     field_types = get_all_field_types()
+#     for field_type in field_types:
+#         field_types_size[field_type.name] = field_type.size
+#     return field_types_size
+#
+#
+# def create_table(table, fields):
+#     """
+#     添加【表】及【表的字段】
+#     :param table: {table_name_cn,table_type}
+#     :param fields: [{field_name_cn,field_type}
+#     :return:
+#     """
+#     result = False
+#     try:
+#         _table = Table.objects.create(  # 先建立表
+#             name="ranking_" + get_random_name(),
+#             name_cn=table["table_name_cn"],
+#             type=get_table_type_by_id_or_name(table["table_type"]))  # 表类型的数据可以为名称也可以为ID，外键：TypeOfTable
+#         sql = "CREATE TABLE " + _table.name + "(" \
+#               + "id int(10) unsigned NOT NULL AUTO_INCREMENT," \
+#               + "batch varchar(255),"
+#         temp_dict = {}
+#         for field in fields:
+#             _type = get_field_type_by_name_or_id(field["field_type"])  # 字段类型数据可以为名称也可以为ID
+#             _field = Field.objects.create(
+#                 name="field_" + get_random_name(temp_dict),
+#                 name_cn=field["field_name_cn"],
+#                 type=_type,  # 外键：TypeOfField
+#                 table=_table)  # 外键：Table
+#             sql += _field.name + " " + _type.name
+#             sql += "(%s)," % _type.size if _type.size else ","  # 如果没有size，则没有括号
+#         sql += "PRIMARY KEY (id));"  # SQL尾
+#         db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+#         conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+#         res = mysql_base_api.sql_execute(conn, cursor, sql, None)  # 执行SQL语句
+#         mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+#         if res != ():
+#             raise Exception(res)
+#         result = _table.id
+#     except IntegrityError as e:  # 仅处理重复添加错误
+#         logger.error(str(e))
+#     finally:
+#         return result
+#
+#
+# def drop_table(table):
+#     """
+#     删除【表】及【表的字段】
+#     :param table: table_name or table_name_cn or table_type
+#     :return:
+#     """
+#     result = False
+#     try:
+#         _table = get_table_by_id_or_name(table)
+#         try:
+#             tables_list = [_table.name]
+#             db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+#             conn, cursor = mysql_base_api.sql_init(db['HOST'],
+#                                  db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+#             mysql_base_api.drop_tables(cursor, tables_list)
+#             mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+#         except Exception as e:
+#             logger.error(str(e))
+#         get_fields_by_table_id(_table.id).delete()
+#         _table.delete()
+#         result = True
+#     except Exception as e:  # 仅处理重复添加错误
+#         logger.error(str(e))
+#     finally:
+#         return result
+#
+#
+# def insert_table(table_id, fields, args):
+#     """
+#
+#     :return:
+#     """
+#     _table = get_table_by_id(int(table_id))
+#     _fields = get_fields_by_table_id(int(table_id))
+#     for field in _fields:
+#         fields.append(field.name)
+#     db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+#     conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+#     sql = mysql_base_api.build_insertsql(_table.name, fields)
+#     mysql_base_api.sql_executemany(conn, cursor, sql, args)
+#     mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+#
+#
+# def table_record_delete(table_name, fields, args):
+#     """
+#
+#     :return:
+#     """
+#     db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+#     conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+#     sql = mysql_base_api.build_delete_sql(table_name, fields)
+#     mysql_base_api.sql_executemany(conn, cursor, sql, args)
+#     mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+#
+#
+# def read_table_content_by_batch(table_name, fields, args):
+#     db = mysql_base_api.MYSQL_CONFIG  # 连接mysql数据库
+#     conn, cursor = mysql_base_api.sql_init(db['HOST'], db['USER'], db['PASSWORD'], db['NAME'], int(db['PORT']))
+#     sql = mysql_base_api.build_select_all_sql(table_name, fields)
+#     res = mysql_base_api.sql_execute(None, cursor, sql, args)
+#     mysql_base_api.sql_close(conn, cursor)  # 关闭mysql连接
+#     return res

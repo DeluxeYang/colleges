@@ -28,13 +28,13 @@
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="form-group">
-                                            <div class="col-xs-6">
-                                                <label class="form-label">字段类型</label>
-                                                <select class="form-control" disabled>
-                                                    <option >varchar</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-xs-6">
+{#                                            <div class="col-xs-6">#}
+{#                                                <label class="form-label">字段类型</label>#}
+{#                                                <select class="form-control" disabled>#}
+{#                                                    <option >varchar</option>#}
+{#                                                </select>#}
+{#                                            </div>#}
+                                            <div class="col-xs-12">
                                                 <label class="form-label">中文字段名</label>
                                                 <input class="form-control" disabled value="批次">
                                             </div>
@@ -48,15 +48,15 @@
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="form-group">
-                                            <div class="col-xs-6">
-                                                <label class="form-label">字段类型</label>
-                                                <select class="form-control" id="id_field_type" name="field_type">
-                                                    {% for t in field_types %}
-                                                        <option value="{{ t.id }}">{{ t.name }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                            <div class="col-xs-6">
+{#                                            <div class="col-xs-6">#}
+{#                                                <label class="form-label">字段类型</label>#}
+{#                                                <select class="form-control" id="id_field_type" name="field_type">#}
+{#                                                    {% for t in field_types %}#}
+{#                                                        <option value="{{ t.id }}">{{ t.name }}</option>#}
+{#                                                    {% endfor %}#}
+{#                                                </select>#}
+{#                                            </div>#}
+                                            <div class="col-xs-12">
                                                 <label class="form-label">中文字段名</label>
                                                 <input class="form-control" name="field_name_cn">
                                             </div>
@@ -94,15 +94,15 @@ $(document).ready(function(){
             '<div class="panel-body">' +
             '<div class="row">' +
             '<div class="form-group">' +
-            '<div class="col-xs-6">' +
-            '<label class="form-label">字段类型</label>' +
-            '<select class="form-control" id="id_field_type" name="field_type">' +
-            {% for t in field_types %}
-            '<option value="{{ t.id }}">{{ t.name }}</option>' +
-            {% endfor %}
-            '</select>' +
-            '</div>' +
-            '<div class="col-xs-6">' +
+{#            '<div class="col-xs-6">' +#}
+{#            '<label class="form-label">字段类型</label>' +#}
+{#            '<select class="form-control" id="id_field_type" name="field_type">' +#}
+{#            {% for t in field_types %}#}
+{#            '<option value="{{ t.id }}">{{ t.name }}</option>' +#}
+{#            {% endfor %}#}
+{#            '</select>' +#}
+{#            '</div>' +#}
+            '<div class="col-xs-12">' +
             '<label class="form-label">中文字段名</label>' +
             '<input class="form-control" name="field_name_cn">' +
             '</div>' +

@@ -5,12 +5,9 @@ import json
 import traceback
 
 from django import forms
-from DjangoUeditor.forms import UEditorField
-from django.db import connection
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from django.template.context import RequestContext
 
 from basic.utils import common
 from basic.utils.logger import logger
@@ -40,15 +37,14 @@ def index(request, param="", digit=""):
         urls[1]["active"] = True
     else:
         urls[0]["active"] = True
-    return render_to_response("backend/list.html", {
+    return render(request, "backend/list.html", {
         "self": request.user,
         "fields": model_fields,
         "urls": urls,
         "title": "新闻列表",
         "delete_url": "/backend/news/delete/",
         "batch_delete_url": "/backend/news/batch_delete/",
-        "get_all_data_url": "/backend/news/retrieve/"+param
-    }, context_instance=RequestContext(request))
+        "get_all_data_url": "/backend/news/retrieve/"+param})
 
 
 def format_news(news, page, size):
@@ -90,7 +86,7 @@ def retrieve_news(request, param="", digit=""):
         _news = []
     page = request.GET.get("page", 1)
     size = request.GET.get("size", 200)
-    content, num_pages = common.with_paginator(_news, int(page), int(size))
+    content, num_pages = common.with_paginator(_news.order_by("id"), int(page), int(size))
     return_dict = format_news(content, int(page), int(size))  # 格式化院校信息
     return_dict["num_pages"] = num_pages
     return HttpResponse(json.dumps(return_dict))
@@ -119,14 +115,11 @@ def news_search_pick(request, param):
                                   {"name": "所在地（市级）", "field": "city"}]
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[1]["active"] = True
-    return render_to_response("backend/news/pick.html",
-                              {
-                                  "self": request.user,
-                                  "fields": model_fields,
-                                  "urls": urls,
-                                  "get_colleges_by_nation_url": "/api/college/by/nation/",
-                              },
-                              context_instance=RequestContext(request))
+    return render(request, "backend/news/pick.html", {
+        "self": request.user,
+        "fields": model_fields,
+        "urls": urls,
+        "get_colleges_by_nation_url": "/api/college/by/nation/"})
 
 
 def news_classification(obj):
@@ -146,9 +139,8 @@ def news_classification(obj):
             if _field == "college_id_code":
                 continue
             fields_dict["char"].append(temp)  # 其他字符串数据到char下
-        elif type(field).__name__ == "TextField":  # @@@第2类，布尔数据
-            if _field == "abstract":
-                fields_dict["text"].append(temp)
+        elif type(field).__name__ == "TextField":  # @@@第2类，
+            fields_dict["text"].append(temp)
         elif type(field).__name__ == "BooleanField":  # @@@第三类，布尔数据
             temp["value"] = "checked" if temp["value"] else ""
             fields_dict["boolean"].append(temp)
@@ -184,10 +176,11 @@ def add_news(request):
     if request.method == "POST":
         try:
             news = {"user": request.user,
-                    "title": request.POST["title"],
-                    "keywords": request.POST["keywords"],
-                    "abstract": request.POST["abstract"],
-                    "content": request.POST["content"],
+                    "title": request.POST.get("title"),
+                    "keywords": request.POST.get("keywords"),
+                    "link": request.POST.get("link"),
+                    "abstract": request.POST.get("abstract", ""),
+                    "content": request.POST.get("content", ""),
                     "is_published": True if "is_published" in request.POST else False,
                     "is_allow_comments": True if "is_allow_comments" in request.POST else False,
                     "is_stick_top": True if "is_stick_top" in request.POST else False,
@@ -199,19 +192,19 @@ def add_news(request):
             return HttpResponseRedirect("/backend/news/modify/"+str(_news.id)+"/")
         except Exception as e:
             logger.error(str(e))
+            logger.error(traceback.format_exc())
             messages.error(request, "添加新闻失败")
     form = NewsUEditorModelForm()
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[2]["active"] = True
     add_news_classification = news_classification({})
-    return render_to_response("backend/news/add.html", {
-            "self": request.user,
-            "fields": add_news_classification,
-            "urls": urls,
-            "form": form,
-            "get_colleges_by_nation_url": "/api/college/by/nation/",
-            "news_image_upload_url": "/api/news/image_upload/"
-        }, context_instance=RequestContext(request))
+    return render(request, "backend/news/add.html", {
+        "self": request.user,
+        "fields": add_news_classification,
+        "urls": urls,
+        "form": form,
+        "get_colleges_by_nation_url": "/api/college/by/nation/",
+        "news_image_upload_url": "/api/news/image_upload/"})
 
 
 def modify_news(request, news_id):
@@ -224,10 +217,11 @@ def modify_news(request, news_id):
         try:
             _news = {"id": int(news_id),
                      "user": request.user,
-                     "title": request.POST["title"],
-                     "keywords": request.POST["keywords"],
-                     "abstract": request.POST["abstract"],
-                     "content": request.POST["content"],
+                     "title": request.POST.get("title"),
+                     "keywords": request.POST.get("keywords"),
+                     "link": request.POST.get("link"),
+                     "abstract": request.POST.get("abstract", ""),
+                     "content": request.POST.get("content", ""),
                      "is_published": True if "is_published" in request.POST else False,
                      "is_allow_comments": True if "is_allow_comments" in request.POST else False,
                      "is_stick_top": True if "is_stick_top" in request.POST else False,
@@ -244,14 +238,13 @@ def modify_news(request, news_id):
     modify_news_classification = news_classification(news.__dict__)
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[0]["active"] = True
-    return render_to_response("backend/news/modify.html", {
+    return render(request, "backend/news/modify.html", {
         "self": request.user,
         "fields": modify_news_classification,
         "urls": urls,
         "form": form,
         "get_colleges_by_nation_url": "/api/college/by/nation/",
-        "news_image_upload_url": "/api/news/image_upload/",
-    }, context_instance=RequestContext(request))
+        "news_image_upload_url": "/api/news/image_upload/"})
 
 
 def batch_delete_news(request):
@@ -290,7 +283,7 @@ def delete_news(request):
 
 
 def news_time_classification(news):
-    _time_format = "%Y-%m-%d %H:%M:%S"
+    # _time_format = "%Y-%m-%d %H:%M:%S"
     news_times = [
         {"name": "创建时间", "field": news.create_time},
         {"name": "更新时间", "field": news.update_time},
@@ -308,10 +301,9 @@ def get_news(request, news_id):
     news_times = news_time_classification(news)
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[0]["active"] = True
-    return render_to_response("backend/news/news.html", {
-            "self": request.user,
-            "fields": modify_news_classification,
-            "news_times": news_times,
-            "urls": urls,
-            "news": news,
-        }, context_instance=RequestContext(request))
+    return render(request, "backend/news/news.html", {
+        "self": request.user,
+        "fields": modify_news_classification,
+        "news_times": news_times,
+        "urls": urls,
+        "news": news})

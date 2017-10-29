@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'api',
     'django_cleanup',
     'DjangoUeditor',
+    'rest_framework',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -82,13 +83,21 @@ WSGI_APPLICATION = 'college.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'college',
-        'USER': 'root',
+        'USER': 'postgres',
         'PASSWORD': '123456',
         'HOST': 'localhost',  # os.environ['MYSQL_PORT_3306_TCP_ADDR'],
-        'PORT': '3306',
-    }
+        'PORT': '5432',
+    },
+    # 'mysql': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'college',
+    #     'USER': 'root',
+    #     'PASSWORD': '123456',
+    #     'HOST': 'localhost',  # os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+    #     'PORT': '3306',
+    # }
 }
 
 # ElasticSearch
@@ -129,6 +138,12 @@ BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_TIMEZONE = TIME_ZONE
 
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
+    'PAGE_SIZE': 50
+}
 
 LOGGING = {
     'version': 1,

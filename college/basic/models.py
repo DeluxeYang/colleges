@@ -1,5 +1,5 @@
 import datetime
-
+from django.contrib.postgres.fields import JSONField
 from DjangoUeditor.models import UEditorField
 from django.db import models
 from django.contrib.auth.models import User
@@ -17,7 +17,7 @@ class TypeOfTable(models.Model):  # 表类型：榜单 人才
 
 class Table(models.Model):  # 表
     type = models.ForeignKey(TypeOfTable, related_name='Table')  # 表类型
-    name = models.CharField(max_length=30, unique=True)  # 表名
+    name = models.CharField(max_length=30, null=True, blank=True)  # 表名
     name_cn = models.CharField(max_length=255, unique=True)  # 中文表名
     create_time = models.DateField(null=True, blank=True)  # 创建时间
 
@@ -61,7 +61,7 @@ class BatchOfTable(models.Model):  # 具体到批次的表名
     name_cn = models.CharField(max_length=255, null=True, blank=True, unique=True)  # 名
     create_time = models.DateField(null=True, blank=True)  # 创建时间
     excel_file = models.FileField(upload_to='data/excel', null=True, blank=True)
-    type = models.IntegerField(null=True, blank=True)
+    table_type = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'batch_of_table'
@@ -71,26 +71,27 @@ class BatchOfTable(models.Model):  # 具体到批次的表名
 
     def save(self, *args, **kwargs):
         self.create_time = datetime.datetime.now().date()
-        self.type = self.table.type.id
+        self.table_type = self.table.type.id
+        self.name_cn = self.table.name_cn + "_" + self.batch.text
         super().save(*args, **kwargs)
 
 
-class TypeOfField(models.Model):  # 字段类型
-    name = models.CharField(max_length=30, unique=True)  # 名称
-    size = models.IntegerField(null=True, blank=True)
-
-    class Meta:
-        db_table = 'type_of_field'
-
-    def __str__(self):  # __unicode__ on Python 2
-        return self.name
+# class TypeOfField(models.Model):  # 字段类型
+#     name = models.CharField(max_length=30, unique=True)  # 名称
+#     size = models.IntegerField(null=True, blank=True)
+#
+#     class Meta:
+#         db_table = 'type_of_field'
+#
+#     def __str__(self):  # __unicode__ on Python 2
+#         return self.name
 
 
 class Field(models.Model):  # 表的字段
     table = models.ForeignKey(Table, related_name='Fields')  # 表
-    type = models.ForeignKey(TypeOfField, related_name='Fields')  # 字段类型
-    name = models.CharField(max_length=30)  # 字段名
+    name = models.CharField(max_length=30, null=True, blank=True)  # 字段名
     name_cn = models.CharField(max_length=255)  # 中文字段名
+    # type = models.ForeignKey(TypeOfField, related_name='Fields')  # 字段类型
 
     class Meta:
         db_table = 'field'
@@ -201,6 +202,7 @@ class News(models.Model):
     tag = models.ManyToManyField(NewsTag, through='NewsAndTag', verbose_name="标签")  # 所属标签
     college = models.ManyToManyField(College, through='NewsAndCollege', verbose_name="相关院校")
     title = models.CharField(max_length=255, verbose_name="标题")  # 标题
+    link = models.TextField(null=True, blank=True, verbose_name="链接")  # 链接
     keywords = models.CharField(max_length=100, null=True, blank=True, verbose_name="关键字")  # 关键字
     abstract = models.TextField(null=True, blank=True, verbose_name="摘要")  # 摘要
     content = UEditorField('内容', height=500, width="auto", default=u'',
@@ -266,17 +268,39 @@ class NewsImage(models.Model):
         db_table = 'news_image'
 
 
-class BatchAndCollegeRelation(models.Model):
-    college = models.ForeignKey(College, related_name="BatchAndCollegeRelation")
-    batch = models.ForeignKey(BatchOfTable, related_name="BatchAndCollegeRelation")
-    type = models.IntegerField(null=True, blank=True)
+class Ranking(models.Model):
+    batch = models.ForeignKey(BatchOfTable, related_name="ranking")
+    data = JSONField()
 
     class Meta:
-        db_table = 'batch_and_college'
-
-    def __str__(self):  # __unicode__ on Python 2
-        return str(self.college.name_cn) + "_" + str(self.batch.name_cn)
+        db_table = 'ranking'
 
     def save(self, *args, **kwargs):
-        self.type = self.batch.type
         super().save(*args, **kwargs)
+
+
+class Professor(models.Model):
+    batch = models.ForeignKey(BatchOfTable, related_name="professor")
+    data = JSONField()
+
+    class Meta:
+        db_table = 'professor'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+
+class RankingAndCollegeRelation(models.Model):
+    college = models.ForeignKey(College, related_name="RankingAndCollegeRelation")
+    ranking = models.ForeignKey(Ranking, related_name="RankingAndCollegeRelation")
+
+    class Meta:
+        db_table = 'ranking_and_college'
+
+
+class ProfessorAndCollegeRelation(models.Model):
+    college = models.ForeignKey(College, related_name="ProfessorAndCollegeRelation")
+    professor = models.ForeignKey(Professor, related_name="ProfessorAndCollegeRelation")
+
+    class Meta:
+        db_table = 'professor_and_college'

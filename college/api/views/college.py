@@ -14,10 +14,21 @@ from django.template.context import RequestContext
 from django.shortcuts import render_to_response
 from django.core.exceptions import ObjectDoesNotExist
 
+from rest_framework import generics
+from rest_framework import permissions
+from rest_framework import renderers
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from rest_framework.views import APIView
+from rest_framework import status
+
 from basic.models import College as College_model, Nation, Department, EduLevel, EduClass, Area
 from basic.views import College
-from basic.utils import excel_loader
 from basic.utils.logger import logger
+
+
+from api.serializer import college
 
 
 def get_colleges_by_nation(request):
@@ -40,16 +51,19 @@ def get_colleges_by_nation(request):
     return HttpResponse(json.dumps(return_dict))
 
 
-def get_all_colleges(request):
+class CollegeList(generics.ListAPIView):
     """
 
-    :param request:
-    :return:
     """
-    page = int(request.GET.get("page", 1))
-    size = int(request.GET.get("size", 20))
-    colleges, num_pages = College.get_all_colleges_with_paginator(page, size)
-    return_dict = {"page": colleges.number, "size": size,
-                   "num_pages": num_pages, "type": "colleges", "length": len(colleges),
-                   "data": College.format_colleges_for_api(colleges)}
-    return JsonResponse(return_dict)
+    queryset = College_model.objects.all()
+    serializer_class = college.CollegeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
+
+
+class CollegeDetail(generics.RetrieveAPIView):
+    """
+    College详细信息
+    """
+    queryset = College_model.objects.all()
+    serializer_class = college.CollegeSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )

@@ -28,13 +28,7 @@
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="form-group">
-                                            <div class="col-xs-6">
-                                                <label class="form-label">字段类型</label>
-                                                <select class="form-control" disabled>
-                                                    <option >varchar</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-xs-6">
+                                            <div class="col-xs-12">
                                                 <label class="form-label">中文字段名</label>
                                                 <input class="form-control" disabled value="批次">
                                             </div>
@@ -47,20 +41,18 @@
                                     <div class="panel-body">
                                         <div class="row">
                                             <div class="form-group">
-                                                <div class="col-xs-6">
-                                                    <label class="form-label">字段类型</label>
-                                                    <input class="form-control"  disabled value="{{ field.type }}">
-                                                </div>
-                                                <div class="col-xs-6">
+                                                <div class="col-xs-12">
                                                     <label class="form-label">中文字段名</label>
                                                     <input class="form-control"  disabled value="{{ field.name_cn }}">
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             {% endfor %}
+                            <input type="button" id="add_one_field" value="添加一个字段" class="btn btn-primary" />
+                            <input type="submit" id="submit" value="提交" class="btn btn-default pull-right" />
+
                         </form>
                     </div>
                 </div>
@@ -70,13 +62,7 @@
 </div>
 <script type="text/javascript">
 function deleteField(event){
-    if($("select[name='field_type']").length > 1){
-        event.target.parentNode.remove();
-    }else {
-        $('#messages').append('<div class="alert alert-danger"> ' +
-            '<a class="close" data-dismiss="alert">×</a>' +
-            '至少有一个字段</div>');
-    }
+    event.target.parentNode.remove();
 }
 $(document).ready(function(){
     var addField = $("#add_one_field");
@@ -87,15 +73,7 @@ $(document).ready(function(){
             '<div class="panel-body">' +
             '<div class="row">' +
             '<div class="form-group">' +
-            '<div class="col-xs-6">' +
-            '<label class="form-label">字段类型</label>' +
-            '<select class="form-control" id="id_field_type" name="field_type">' +
-            {% for t in field_types %}
-            '<option value="{{ t.id }}">{{ t.name }}</option>' +
-            {% endfor %}
-            '</select>' +
-            '</div>' +
-            '<div class="col-xs-6">' +
+            '<div class="col-xs-12">' +
             '<label class="form-label">中文字段名</label>' +
             '<input class="form-control" name="field_name_cn">' +
             '</div>' +

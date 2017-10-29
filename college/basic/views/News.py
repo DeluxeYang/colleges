@@ -137,6 +137,7 @@ def create_news(news, tags, colleges):
         user=news["user"],
         title=news["title"],
         keywords=news["keywords"],
+        link=news["link"],
         abstract=news["abstract"],
         content=news["content"],
         is_published=news["is_published"],

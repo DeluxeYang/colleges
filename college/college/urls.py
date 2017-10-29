@@ -15,18 +15,19 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.views.static import serve
 
 from basic.views import test
 from college.settings import MEDIA_ROOT
 
 
 urlpatterns = [
-    url(r'^upload/(?P<path>.*)$', 'django.views.static.serve', {'document_root': MEDIA_ROOT}),
-
+    url(r'^upload/(?P<path>.*)$', serve, {'document_root': MEDIA_ROOT}),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^test/', test.test),
+
     url(r'^backend/', include('backend.urls')),
     url(r'^api/', include('api.urls')),
 
+    url(r'^test/', test.test),
     url(r'^ueditor/', include('DjangoUeditor.urls')),
 ]

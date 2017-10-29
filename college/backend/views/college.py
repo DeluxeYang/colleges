@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import copy
-import json
 import datetime
 import traceback
 
-# from django.db import connection
 from django.db import IntegrityError
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib import messages
-from django.template.context import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.core.exceptions import ObjectDoesNotExist
 
 from basic.models import College as College_model, Nation, Department, EduLevel, EduClass, Area
@@ -63,14 +60,13 @@ def index(request, param="", digit=""):
         urls[1]["active"] = True
     else:
         urls[0]["active"] = True
-    return render_to_response("backend/list.html", {
+    return render(request, "backend/list.html", {
         "self": request.user,
         "fields": model_fields,
         "urls": urls,
         "title": "院校列表",
         "delete_url": "/backend/college/delete/",
-        "get_all_data_url": "/backend/college/retrieve/"+param
-    }, context_instance=RequestContext(request))
+        "get_all_data_url": "/backend/college/retrieve/"+param})
 
 
 def format_colleges(colleges, page, size):
@@ -143,10 +139,10 @@ def retrieve_colleges(request, param="", digit=""):
         colleges = []
     page = request.GET.get("page", 1)
     size = request.GET.get("size", 200)
-    content, num_pages = common.with_paginator(colleges, int(page), int(size))
+    content, num_pages = common.with_paginator(colleges.order_by("id"), int(page), int(size))
     return_dict = format_colleges(content, int(page), int(size))  # 格式化院校信息
     return_dict["num_pages"] = num_pages
-    return HttpResponse(json.dumps(return_dict))
+    return JsonResponse(return_dict)
 
 
 def college_search_pick(request, param):
@@ -187,15 +183,12 @@ def college_search_pick(request, param):
         model_fields["foreign_key"].append(temp)  # 记录到foreign_key下
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[1]["active"] = True
-    return render_to_response("backend/college/pick.html",
-                              {
-                                  "self": request.user,
-                                  "fields": model_fields,
-                                  "urls": urls,
-                                  "file_delete_url": "/backend/college/delete/",
-                                  "get_all_college_url": "/backend/college/retrieve/"+param
-                              },
-                              context_instance=RequestContext(request))
+    return render(request, "backend/college/pick.html", {
+        "self": request.user,
+        "fields": model_fields,
+        "urls": urls,
+        "file_delete_url": "/backend/college/delete/",
+        "get_all_college_url": "/backend/college/retrieve/"+param})
 
 
 def college_classification(obj):
@@ -288,11 +281,10 @@ def add_college(request):
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[2]["active"] = True
     add_college_classification = college_classification(obj={})
-    return render_to_response("backend/college/add.html", {
-            "self": request.user,
-            "fields": add_college_classification,
-            "urls": urls
-        }, context_instance=RequestContext(request))
+    return render(request, "backend/college/add.html", {
+        "self": request.user,
+        "fields": add_college_classification,
+        "urls": urls})
 
 
 def modify_college(request, college_id):
@@ -337,11 +329,10 @@ def modify_college(request, college_id):
     fields_dict = college_classification(college.__dict__)
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[0]["active"] = True
-    return render_to_response("backend/college/modify.html", {
-            "self": request.user,
-            "fields": fields_dict,
-            "urls": urls
-        }, context_instance=RequestContext(request))
+    return render(request, "backend/college/modify.html", {
+        "self": request.user,
+        "fields": fields_dict,
+        "urls": urls})
 
 
 def batch_delete_college(request):
@@ -359,7 +350,7 @@ def batch_delete_college(request):
         logger.error(str(e))
         logger.error(traceback.format_exc())
         return_dict["error"] = "删除失败"
-    return HttpResponse(json.dumps(return_dict))
+    return JsonResponse(return_dict)
 
 
 def delete_college(request):
@@ -376,7 +367,7 @@ def delete_college(request):
         logger.error(str(e))
         logger.error(traceback.format_exc())
         return_dict["error"] = "删除失败"
-    return HttpResponse(json.dumps(return_dict))
+    return JsonResponse(return_dict)
 
 
 def get_date_from_post(content):
@@ -505,18 +496,15 @@ def import_college(request):
             logger.error(traceback.format_exc())
             return_dict["error"] = "出现错误，请检查文件及内容格式"
         finally:
-            return HttpResponse(json.dumps(return_dict))
+            return JsonResponse(return_dict)
     urls = copy.deepcopy(SIDEBAR_URL)  # 侧边栏网址
     urls[3]["active"] = True
-    return render_to_response("backend/college/import.html",
-                              {
-                                  "self": request.user,
-                                  "fields": model_fields[1:4] + model_fields[5:7] + model_fields[8:],
-                                  "urls": urls,
-                                  "file_upload_url": "/backend/college/import/",
-                                  "college_clean_url": "/backend/college/clean/",
-                              },
-                              context_instance=RequestContext(request))
+    return render(request, "backend/college/import.html", {
+        "self": request.user,
+        "fields": model_fields[1:4] + model_fields[5:7] + model_fields[8:],
+        "urls": urls,
+        "file_upload_url": "/backend/college/import/",
+        "college_clean_url": "/backend/college/clean/"})
 
 
 def clean_college(request):
@@ -533,4 +521,4 @@ def clean_college(request):
         logger.error(str(e))
         logger.error(traceback.format_exc())
         return_dict["error"] = "院校清空失败"
-    return HttpResponse(json.dumps(return_dict))
+    return JsonResponse(return_dict)

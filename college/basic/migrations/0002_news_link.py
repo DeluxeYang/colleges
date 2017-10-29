@@ -7,13 +7,13 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('basic', '0004_batchoftable_type'),
+        ('basic', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='batchandcollegerelation',
-            name='type',
-            field=models.IntegerField(null=True, blank=True),
+            model_name='news',
+            name='link',
+            field=models.TextField(blank=True, verbose_name='链接', null=True),
         ),
     ]

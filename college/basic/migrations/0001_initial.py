@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-from django.conf import settings
 import DjangoUeditor.models
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Area',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('name_cn', models.CharField(max_length=30)),
                 ('nation_code_2', models.CharField(null=True, max_length=2, blank=True)),
                 ('is_index', models.BooleanField(default=False)),
@@ -26,12 +26,23 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='BatchAndCollegeRelation',
+            fields=[
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('type', models.IntegerField(null=True, blank=True)),
+            ],
+            options={
+                'db_table': 'batch_and_college',
+            },
+        ),
+        migrations.CreateModel(
             name='BatchOfTable',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('name_cn', models.CharField(null=True, max_length=255, blank=True)),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('name_cn', models.CharField(null=True, unique=True, max_length=255, blank=True)),
                 ('create_time', models.DateField(null=True, blank=True)),
-                ('excel_file', models.FileField(upload_to='data/excel', null=True, blank=True)),
+                ('excel_file', models.FileField(null=True, upload_to='data/excel', blank=True)),
+                ('type', models.IntegerField(null=True, blank=True)),
             ],
             options={
                 'db_table': 'batch_of_table',
@@ -40,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='College',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('name_cn', models.CharField(verbose_name='学校名称', max_length=30, unique=True)),
                 ('id_code', models.CharField(verbose_name='学校标识码', max_length=30, unique=True)),
                 ('area', models.CharField(null=True, verbose_name='片区', max_length=30, blank=True)),
@@ -65,7 +76,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Department',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('name_cn', models.CharField(null=True, max_length=30, blank=True)),
             ],
             options={
@@ -75,7 +86,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EduClass',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('name_cn', models.CharField(null=True, max_length=30, blank=True)),
             ],
             options={
@@ -85,7 +96,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EduLevel',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('name_cn', models.CharField(null=True, max_length=30, blank=True)),
             ],
             options={
@@ -95,7 +106,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Field',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('name', models.CharField(max_length=30)),
                 ('name_cn', models.CharField(max_length=255)),
             ],
@@ -106,7 +117,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Nation',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('code', models.CharField(null=True, max_length=40, blank=True)),
                 ('province', models.CharField(null=True, max_length=40, blank=True)),
                 ('city', models.CharField(null=True, max_length=40, blank=True)),
@@ -123,7 +134,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='News',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('title', models.CharField(verbose_name='标题', max_length=255)),
                 ('keywords', models.CharField(null=True, verbose_name='关键字', max_length=100, blank=True)),
                 ('abstract', models.TextField(null=True, verbose_name='摘要', blank=True)),
@@ -144,9 +155,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsAndCollege',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('college', models.ForeignKey(related_name='news_and_college', to='basic.College')),
-                ('news', models.ForeignKey(related_name='news_and_college', to='basic.News')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('college', models.ForeignKey(to='basic.College', related_name='news_and_college')),
+                ('news', models.ForeignKey(to='basic.News', related_name='news_and_college')),
             ],
             options={
                 'db_table': 'news_and_college',
@@ -155,8 +166,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsAndTag',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('news', models.ForeignKey(related_name='news_and_tag', to='basic.News')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('news', models.ForeignKey(to='basic.News', related_name='news_and_tag')),
             ],
             options={
                 'db_table': 'news_and_tag',
@@ -165,11 +176,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsComment',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('content', models.TextField(null=True, blank=True)),
                 ('reply', models.IntegerField(null=True, blank=True)),
-                ('news', models.ForeignKey(related_name='news_comment', to='basic.News')),
-                ('user', models.ForeignKey(related_name='news_comment', to=settings.AUTH_USER_MODEL)),
+                ('news', models.ForeignKey(to='basic.News', related_name='news_comment')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='news_comment')),
             ],
             options={
                 'db_table': 'news_comment',
@@ -178,8 +189,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsImage',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(upload_to='news/photos/%Y/%m/%d')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('image', models.ImageField(upload_to='news/images/')),
             ],
             options={
                 'db_table': 'news_image',
@@ -188,7 +199,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewsTag',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('title', models.CharField(max_length=255)),
             ],
             options={
@@ -198,9 +209,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Table',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=30, unique=True)),
-                ('name_cn', models.CharField(max_length=255, unique=True)),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('name', models.CharField(unique=True, max_length=30)),
+                ('name_cn', models.CharField(unique=True, max_length=255)),
                 ('create_time', models.DateField(null=True, blank=True)),
             ],
             options={
@@ -208,21 +219,10 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='TypeOfField',
-            fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=30, unique=True)),
-                ('size', models.IntegerField(null=True, blank=True)),
-            ],
-            options={
-                'db_table': 'type_of_field',
-            },
-        ),
-        migrations.CreateModel(
             name='TypeOfTable',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
-                ('name_cn', models.CharField(max_length=30, unique=True)),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('name_cn', models.CharField(unique=True, max_length=30)),
             ],
             options={
                 'db_table': 'type_of_table',
@@ -231,7 +231,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='YearSeasonMonth',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
                 ('year', models.IntegerField(null=True, blank=True)),
                 ('season', models.IntegerField(null=True, blank=True)),
                 ('month', models.IntegerField(null=True, blank=True)),
@@ -245,61 +245,66 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='table',
             name='type',
-            field=models.ForeignKey(related_name='Table', to='basic.TypeOfTable'),
+            field=models.ForeignKey(to='basic.TypeOfTable', related_name='Table'),
         ),
         migrations.AddField(
             model_name='newsandtag',
             name='tag',
-            field=models.ForeignKey(related_name='news_and_tag', to='basic.NewsTag'),
+            field=models.ForeignKey(to='basic.NewsTag', related_name='news_and_tag'),
         ),
         migrations.AddField(
             model_name='news',
             name='college',
-            field=models.ManyToManyField(to='basic.College', verbose_name='相关院校', through='basic.NewsAndCollege', related_name='news'),
+            field=models.ManyToManyField(verbose_name='相关院校', to='basic.College', through='basic.NewsAndCollege'),
         ),
         migrations.AddField(
             model_name='news',
             name='tag',
-            field=models.ManyToManyField(to='basic.NewsTag', verbose_name='标签', through='basic.NewsAndTag', related_name='news'),
+            field=models.ManyToManyField(verbose_name='标签', to='basic.NewsTag', through='basic.NewsAndTag'),
         ),
         migrations.AddField(
             model_name='news',
             name='user',
-            field=models.ForeignKey(related_name='news', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='news'),
         ),
         migrations.AddField(
             model_name='field',
             name='table',
-            field=models.ForeignKey(related_name='Fields', to='basic.Table'),
-        ),
-        migrations.AddField(
-            model_name='field',
-            name='type',
-            field=models.ForeignKey(related_name='Fields', to='basic.TypeOfField'),
+            field=models.ForeignKey(to='basic.Table', related_name='Fields'),
         ),
         migrations.AddField(
             model_name='college',
             name='department',
-            field=models.ForeignKey(to='basic.Department', related_name='college', verbose_name='主管部门'),
+            field=models.ForeignKey(verbose_name='主管部门', to='basic.Department', related_name='college'),
         ),
         migrations.AddField(
             model_name='college',
             name='edu_class',
-            field=models.ForeignKey(to='basic.EduClass', related_name='college', verbose_name='类别'),
+            field=models.ForeignKey(verbose_name='类别', to='basic.EduClass', related_name='college'),
         ),
         migrations.AddField(
             model_name='college',
             name='edu_level',
-            field=models.ForeignKey(to='basic.EduLevel', related_name='college', verbose_name='办学层次'),
+            field=models.ForeignKey(verbose_name='办学层次', to='basic.EduLevel', related_name='college'),
         ),
         migrations.AddField(
             model_name='batchoftable',
             name='batch',
-            field=models.ForeignKey(related_name='BatchOfTable', to='basic.YearSeasonMonth'),
+            field=models.ForeignKey(to='basic.YearSeasonMonth', related_name='BatchOfTable'),
         ),
         migrations.AddField(
             model_name='batchoftable',
             name='table',
-            field=models.ForeignKey(related_name='BatchOfTable', to='basic.Table'),
+            field=models.ForeignKey(to='basic.Table', related_name='BatchOfTable'),
+        ),
+        migrations.AddField(
+            model_name='batchandcollegerelation',
+            name='batch',
+            field=models.ForeignKey(to='basic.BatchOfTable', related_name='BatchAndCollegeRelation'),
+        ),
+        migrations.AddField(
+            model_name='batchandcollegerelation',
+            name='college',
+            field=models.ForeignKey(to='basic.College', related_name='BatchAndCollegeRelation'),
         ),
     ]

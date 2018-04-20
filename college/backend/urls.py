@@ -1,104 +1,89 @@
-"""college URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/1.8/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  url(r'^$', Home.as_view(), name='home')
-Including another URLconf
-    1. Add an import:  from blog import urls as blog_urls
-    2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
-"""
-from django.conf.urls import url
+from django.urls import path
 from backend.views import college, news, ranking, professor
 
 
 urlpatterns = [
-    url(r'^$', news.index),
+    path('', news.index),
 
     ######################################################################
     # college
-    url(r'^college/$', college.index),
-    url(r'^college/search/(?P<param>[a-zA-Z0-9_]+)/$', college.index),
-    url(r'^college/search/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', college.index),
+    path('college/', college.index),
+    path('college/search/<str:param>/', college.index),
+    path('college/search/<str:param>/<int:digit>/', college.index),
 
-    url(r'^college/retrieve/$', college.retrieve_colleges),
-    url(r'^college/retrieve/(?P<param>[a-zA-Z0-9_]+)/$', college.retrieve_colleges),
-    url(r'^college/pick/(?P<param>[a-zA-Z0-9_]+)/$', college.college_search_pick),
-    url(r'^college/retrieve/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', college.retrieve_colleges),
+    path('college/retrieve/', college.retrieve_colleges),
+    path('college/retrieve/<str:param>/', college.retrieve_colleges),
+    path('college/pick/<str:param>/', college.college_search_pick),
+    path('college/retrieve/<str:param>/<int:digit>/', college.retrieve_colleges),
 
-    url(r'^college/add/$', college.add_college),
-    url(r'^college/modify/(?P<college_id>[0-9]+)/$', college.modify_college),
-    url(r'^college/delete/$', college.delete_college),
-    url(r'^college/batch_delete/$', college.batch_delete_college),
-    url(r'^college/import/$', college.import_college),
-    url(r'^college/clean/$', college.clean_college),
+    path('college/add/', college.add_college),
+    path('college/modify/<int:college_id>/', college.modify_college),
+    path('college/delete/', college.delete_college),
+    path('college/batch_delete/', college.batch_delete_college),
+    path('college/import/', college.import_college),
+    path('college/clean/', college.clean_college),
 
     ######################################################################
     # news
-    url(r'^news/$', news.index),
-    url(r'^news/search/(?P<param>[a-zA-Z0-9_]+)/$', news.index),
-    url(r'^news/search/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', news.index),
+    path('news/', news.index),
+    path('news/search/<str:param>/', news.index),
+    path('news/search/<str:param>/<int:digit>/', news.index),
 
-    url(r'^news/retrieve/$', news.retrieve_news),
-    url(r'^news/retrieve/(?P<param>[a-zA-Z0-9_]+)/$', news.retrieve_news),
-    url(r'^news/retrieve/(?P<param>[a-zA-Z0-9_]+)/(?P<digit>[0-9]+)/$', news.retrieve_news),
+    path('news/retrieve/', news.retrieve_news),
+    path('news/retrieve/<str:param>/', news.retrieve_news),
+    path('news/retrieve/<str:param>/<int:digit>/', news.retrieve_news),
 
-    url(r'^news/pick/(?P<param>[a-zA-Z0-9_]+)/$', news.news_search_pick),
+    path('news/pick/<str:param>/', news.news_search_pick),
 
-    url(r'^news/(?P<news_id>[0-9]+)/$', news.get_news),
-    url(r'^news/add/$', news.add_news),
-    url(r'^news/modify/(?P<news_id>[0-9]+)/$', news.modify_news),
-    url(r'^news/delete/$', news.delete_news),
-    url(r'^news/batch_delete/$', news.batch_delete_news),
+    path('news/<int:news_id>/', news.get_news),
+    path('news/add/', news.add_news),
+    path('news/modify/<int:news_id>/', news.modify_news),
+    path('news/delete/', news.delete_news),
+    path('news/batch_delete/', news.batch_delete_news),
 
     ######################################################################
     # ranking
-    url(r'^ranking/$', ranking.index),
-    url(r'^ranking/retrieve/$', ranking.retrieve_ranking),
-    url(r'^ranking/(?P<ranking_id>[0-9]+)/$', ranking.get_ranking),
+    path('ranking/', ranking.index),
+    path('ranking/retrieve/', ranking.retrieve_ranking),
+    path('ranking/<int:ranking_id>/', ranking.get_ranking),
 
-    url(r'^ranking/import/(?P<ranking_id>[0-9]+)/$', ranking.import_ranking),
+    path('ranking/import/<int:ranking_id>/', ranking.import_ranking),
 
-    url(r'^ranking/add/$', ranking.add_ranking),
-    url(r'^ranking/delete/$', ranking.delete_ranking),
-    url(r'^ranking/batch_delete/$', ranking.batch_delete_ranking),
+    path('ranking/add/', ranking.add_ranking),
+    path('ranking/delete/', ranking.delete_ranking),
+    path('ranking/batch_delete/', ranking.batch_delete_ranking),
 
-    url(r'^rankings/$', ranking.rankings_index),
-    url(r'^rankings/retrieve/$', ranking.retrieve_rankings),
-    url(r'^rankings/(?P<ranking_id>[0-9]+)/$', ranking.rankings_index),
-    url(r'^rankings/retrieve/(?P<ranking_id>[0-9]+)/$', ranking.retrieve_rankings),
-    url(r'^rankings/delete/$', ranking.delete_rankings),
-    url(r'^rankings/batch_delete/$', ranking.batch_delete_rankings_batches),
+    path('rankings/', ranking.rankings_index),
+    path('rankings/retrieve/', ranking.retrieve_rankings),
+    path('rankings/<int:ranking_id>/', ranking.rankings_index),
+    path('rankings/retrieve/<int:ranking_id>/', ranking.retrieve_rankings),
+    path('rankings/delete/', ranking.delete_rankings),
+    path('rankings/batch_delete/', ranking.batch_delete_rankings_batches),
 
-    url(r'^rankings/content/(?P<batch_id>[0-9]+)/$', ranking.rankings_content_index),
-    url(r'^rankings/content/retrieve/(?P<batch_id>[0-9]+)/$', ranking.retrieve_rankings_content),
-    url(r'^rankings/search/college/$', ranking.rankings_search_pick),
+    path('rankings/content/<int:batch_id>/', ranking.rankings_content_index),
+    path('rankings/content/retrieve/<int:batch_id>/', ranking.retrieve_rankings_content),
+    path('rankings/search/college/', ranking.rankings_search_pick),
 
     ######################################################################
     # professor
-    url(r'^professor/$', professor.index),
-    url(r'^professor/retrieve/$', professor.retrieve_professor),
-    url(r'^professor/(?P<professor_id>[0-9]+)/$', professor.get_professor),
+    path('professor/', professor.index),
+    path('professor/retrieve/', professor.retrieve_professor),
+    path('professor/<int:professor_id>/', professor.get_professor),
 
-    url(r'^professor/import/(?P<professor_id>[0-9]+)/$', professor.import_professor),
+    path('professor/import/<int:professor_id>/', professor.import_professor),
 
-    url(r'^professor/add/$', professor.add_professor),
-    url(r'^professor/delete/$', professor.delete_professor),
-    url(r'^professor/batch_delete/$', professor.batch_delete_professor),
+    path('professor/add/', professor.add_professor),
+    path('professor/delete/', professor.delete_professor),
+    path('professor/batch_delete/', professor.batch_delete_professor),
 
-    url(r'^professors/$', professor.professors_index),
-    url(r'^professors/retrieve/$', professor.retrieve_professors),
-    url(r'^professors/(?P<professor_id>[0-9]+)/$', professor.professors_index),
-    url(r'^professors/retrieve/(?P<professor_id>[0-9]+)/$', professor.retrieve_professors),
-    url(r'^professors/delete/$', professor.delete_professors),
-    url(r'^professors/batch_delete/$', professor.batch_delete_professors_batches),
+    path('professors/', professor.professors_index),
+    path('professors/retrieve/', professor.retrieve_professors),
+    path('professors/<int:professor_id>/', professor.professors_index),
+    path('professors/retrieve/<int:professor_id>/', professor.retrieve_professors),
+    path('professors/delete/', professor.delete_professors),
+    path('professors/batch_delete/', professor.batch_delete_professors_batches),
 
-    url(r'^professors/content/(?P<batch_id>[0-9]+)/$', professor.professors_content_index),
-    url(r'^professors/content/retrieve/(?P<batch_id>[0-9]+)/$', professor.retrieve_professors_content),
-    url(r'^professors/search/college/$', professor.professors_search_pick),
+    path('professors/content/<int:batch_id>/', professor.professors_content_index),
+    path('professors/content/retrieve/<int:batch_id>/', professor.retrieve_professors_content),
+    path('professors/search/college/', professor.professors_search_pick),
 ]

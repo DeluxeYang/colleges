@@ -2,14 +2,14 @@
 # middleware for dispatch url
 """
 import json
-from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from basic.utils.response import Response, BIZ_CODE
+from basic.utils.response import BIZ_CODE
+from django.utils.deprecation import MiddlewareMixin
 
 
 # 判断用户是否登陆的中间件
-class QtsAuthentication(object):
+class QtsAuthentication(MiddlewareMixin):
     """ class in middleware to dispatch url in different situations """
     @staticmethod
     def process_request(request):
@@ -22,7 +22,7 @@ class QtsAuthentication(object):
                     ret = BIZ_CODE['UN_LOGIN']
                     return HttpResponse(json.dumps(ret))
         elif 'backend' in request.path:
-            if not request.user.is_authenticated():
+            if not request.user.is_authenticated:
                 return HttpResponseRedirect('/admin/login/?next=%s' % request.path)
             elif not request.user.is_staff:
                 messages.error(request, "不是管理员无法访问后台系统")

@@ -1,4 +1,4 @@
-django
+django==1.8.1
 pymysql
 mysqlclient
 pillow
@@ -8,3 +8,4 @@ djangorestframework
 markdown
 django-filter
 psycopg2
+django_cleanup

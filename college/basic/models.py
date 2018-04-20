@@ -16,7 +16,7 @@ class TypeOfTable(models.Model):  # 表类型：榜单 人才
 
 
 class Table(models.Model):  # 表
-    type = models.ForeignKey(TypeOfTable, related_name='Table')  # 表类型
+    type = models.ForeignKey(TypeOfTable, related_name='Table', on_delete=models.CASCADE)  # 表类型
     name = models.CharField(max_length=30, null=True, blank=True)  # 表名
     name_cn = models.CharField(max_length=255, unique=True)  # 中文表名
     create_time = models.DateField(null=True, blank=True)  # 创建时间
@@ -56,8 +56,8 @@ class YearSeasonMonth(models.Model):
 
 
 class BatchOfTable(models.Model):  # 具体到批次的表名
-    table = models.ForeignKey(Table, related_name='BatchOfTable')  # 表
-    batch = models.ForeignKey(YearSeasonMonth, related_name='BatchOfTable')  # 批次
+    table = models.ForeignKey(Table, related_name='BatchOfTable', on_delete=models.CASCADE)  # 表
+    batch = models.ForeignKey(YearSeasonMonth, related_name='BatchOfTable', on_delete=models.CASCADE)  # 批次
     name_cn = models.CharField(max_length=255, null=True, blank=True, unique=True)  # 名
     create_time = models.DateField(null=True, blank=True)  # 创建时间
     excel_file = models.FileField(upload_to='data/excel', null=True, blank=True)
@@ -88,7 +88,7 @@ class BatchOfTable(models.Model):  # 具体到批次的表名
 
 
 class Field(models.Model):  # 表的字段
-    table = models.ForeignKey(Table, related_name='Fields')  # 表
+    table = models.ForeignKey(Table, related_name='Fields', on_delete=models.CASCADE)  # 表
     name = models.CharField(max_length=30, null=True, blank=True)  # 字段名
     name_cn = models.CharField(max_length=255)  # 中文字段名
     # type = models.ForeignKey(TypeOfField, related_name='Fields')  # 字段类型
@@ -150,13 +150,13 @@ class EduClass(models.Model):  # 办学类别
 class College(models.Model):
     name_cn = models.CharField(max_length=30, unique=True, verbose_name="学校名称")  # 学校名
     id_code = models.CharField(max_length=30, unique=True, verbose_name="学校标识码")  # 学校识别码
-    department = models.ForeignKey(Department, related_name='college', verbose_name="主管部门")  # 办学类型
+    department = models.ForeignKey(Department, related_name='college', verbose_name="主管部门", on_delete=models.CASCADE)  # 办学类型
     area = models.CharField(max_length=30, null=True, blank=True, verbose_name="片区")  # 片区
     province = models.CharField(max_length=30, null=True, blank=True, verbose_name="所在地（省级）")  # 所在地（省级）
     city = models.CharField(max_length=30, null=True, blank=True, verbose_name="所在地（城市）")  # 所在地（城市）
     nation_code = models.CharField(max_length=40, null=True, blank=True, verbose_name="行政区划编码")  # 行政区划编码
-    edu_level = models.ForeignKey(EduLevel, related_name='college', verbose_name="办学层次")  # 办学层次：本科or专科
-    edu_class = models.ForeignKey(EduClass, related_name='college', verbose_name="类别")  # 办学类型
+    edu_level = models.ForeignKey(EduLevel, related_name='college', verbose_name="办学层次", on_delete=models.CASCADE)  # 办学层次：本科or专科
+    edu_class = models.ForeignKey(EduClass, related_name='college', verbose_name="类别", on_delete=models.CASCADE)  # 办学类型
     is_vice_ministry = models.BooleanField(default=False, verbose_name="副部级高校")  # 副部级高校
     is_211 = models.BooleanField(default=False, verbose_name="211工程")  # 211工程
     is_985 = models.BooleanField(default=False, verbose_name="985工程")  # 985工程
@@ -198,7 +198,7 @@ class NewsTag(models.Model):
 
 
 class News(models.Model):
-    user = models.ForeignKey(User, related_name='news')  # 发布用户
+    user = models.ForeignKey(User, related_name='news', on_delete=models.CASCADE)  # 发布用户
     tag = models.ManyToManyField(NewsTag, through='NewsAndTag', verbose_name="标签")  # 所属标签
     college = models.ManyToManyField(College, through='NewsAndCollege', verbose_name="相关院校")
     title = models.CharField(max_length=255, verbose_name="标题")  # 标题
@@ -233,24 +233,24 @@ class News(models.Model):
 
 
 class NewsAndCollege(models.Model):
-    news = models.ForeignKey(News, related_name='news_and_college')
-    college = models.ForeignKey(College, related_name='news_and_college')
+    news = models.ForeignKey(News, related_name='news_and_college', on_delete=models.CASCADE)
+    college = models.ForeignKey(College, related_name='news_and_college', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'news_and_college'
 
 
 class NewsAndTag(models.Model):
-    news = models.ForeignKey(News, related_name='news_and_tag')
-    tag = models.ForeignKey(NewsTag, related_name='news_and_tag')
+    news = models.ForeignKey(News, related_name='news_and_tag', on_delete=models.CASCADE)
+    tag = models.ForeignKey(NewsTag, related_name='news_and_tag', on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'news_and_tag'
 
 
 class NewsComment(models.Model):
-    user = models.ForeignKey(User, related_name='news_comment')  # 发布用户
-    news = models.ForeignKey(News, related_name='news_comment')  # 发布用户
+    user = models.ForeignKey(User, related_name='news_comment', on_delete=models.CASCADE)  # 发布用户
+    news = models.ForeignKey(News, related_name='news_comment', on_delete=models.CASCADE)  # 发布用户
     content = models.TextField(null=True, blank=True)  # 内容
     reply = models.IntegerField(null=True, blank=True)
 
@@ -269,7 +269,7 @@ class NewsImage(models.Model):
 
 
 class Ranking(models.Model):
-    batch = models.ForeignKey(BatchOfTable, related_name="ranking")
+    batch = models.ForeignKey(BatchOfTable, related_name="ranking", on_delete=models.CASCADE)
     data = JSONField()
 
     class Meta:
@@ -280,7 +280,7 @@ class Ranking(models.Model):
 
 
 class Professor(models.Model):
-    batch = models.ForeignKey(BatchOfTable, related_name="professor")
+    batch = models.ForeignKey(BatchOfTable, related_name="professor", on_delete=models.CASCADE)
     data = JSONField()
 
     class Meta:
@@ -291,16 +291,16 @@ class Professor(models.Model):
 
 
 class RankingAndCollegeRelation(models.Model):
-    college = models.ForeignKey(College, related_name="RankingAndCollegeRelation")
-    ranking = models.ForeignKey(Ranking, related_name="RankingAndCollegeRelation")
+    college = models.ForeignKey(College, related_name="RankingAndCollegeRelation", on_delete=models.CASCADE)
+    ranking = models.ForeignKey(Ranking, related_name="RankingAndCollegeRelation", on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'ranking_and_college'
 
 
 class ProfessorAndCollegeRelation(models.Model):
-    college = models.ForeignKey(College, related_name="ProfessorAndCollegeRelation")
-    professor = models.ForeignKey(Professor, related_name="ProfessorAndCollegeRelation")
+    college = models.ForeignKey(College, related_name="ProfessorAndCollegeRelation", on_delete=models.CASCADE)
+    professor = models.ForeignKey(Professor, related_name="ProfessorAndCollegeRelation", on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'professor_and_college'

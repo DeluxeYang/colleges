@@ -180,7 +180,7 @@ def rankings_index(request, ranking_id=""):
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[1]["active"] = True
     if ranking_id != "":
-        ranking_id += "/"
+        ranking_id = str(ranking_id) + "/"
         if "search_by_college" in request.GET:
             ranking_id += "?search_by_college=true"
     return render(request, "backend/list.html", {

@@ -33,7 +33,7 @@ def index(request, param="", digit=""):
     model_fields = ["#", "新闻标题", "创建者", "创建时间", "编辑", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
     if param != "":
-        param += "/" if digit == "" else "/" + digit + "/"
+        param += "/" if digit == "" else "/" + str(digit) + "/"
         urls[1]["active"] = True
     else:
         urls[0]["active"] = True

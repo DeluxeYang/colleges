@@ -46,17 +46,17 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
-    'basic.middleware.test.Test1',
+    # 'basic.middleware.test.Test1',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'basic.middleware.test.Test2',
+    # 'basic.middleware.test.Test2',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'basic.middleware.dispatcher.QtsAuthentication',
-    'basic.middleware.test.Test3',
+    # 'basic.middleware.test.Test3',
 ]
 
 ROOT_URLCONF = 'college.urls'

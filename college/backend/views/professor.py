@@ -179,7 +179,7 @@ def professors_index(request, professor_id=""):
     urls = copy.deepcopy(SIDEBAR_URL)
     urls[1]["active"] = True
     if professor_id != "":
-        professor_id += "/"
+        professor_id = str(professor_id) + "/"
         if "search_by_college" in request.GET:
             professor_id += "?search_by_college=true"
     return render(request, "backend/list.html", {

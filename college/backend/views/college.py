@@ -56,7 +56,7 @@ def index(request, param="", digit=""):
                     "成立时间", "注销时间", "备注", "已撤销", "合并后", "修改", "删除"]
     urls = copy.deepcopy(SIDEBAR_URL)
     if param != "":
-        param += "/" if digit == "" else "/" + digit + "/"
+        param += "/" if digit == "" else "/" + str(digit) + "/"
         urls[1]["active"] = True
     else:
         urls[0]["active"] = True
@@ -131,7 +131,7 @@ def retrieve_colleges(request, param="", digit=""):
                 "department": colleges.filter(department_id=int(digit)),
                 "level": colleges.filter(edu_level_id=int(digit)),  # 参数为211，则筛选出211院校
                 "class": colleges.filter(edu_class_id=int(digit)),  # 参数为985，则筛选出985院校
-                "nation": colleges.filter(nation_code__startswith=digit),  # 参数为985p，则筛选出985平台院校
+                "nation": colleges.filter(nation_code__startswith=str(digit)),  # 参数为985p，则筛选出985平台院校
                 "area": colleges.filter(area=area)}
             colleges = foreign_switch[param]  # 选择
     except KeyError:

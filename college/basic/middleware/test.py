@@ -22,6 +22,9 @@ class Test1(MiddlewareMixin):
         print("request 1")
         # request.session = self.SessionStore(session_key)
 
+    def process_view(self, request, callback, callback_args, callback_kwargs):
+        print("process_view 1")
+
     def process_response(self, request, response):
         print("response 1")
         return response
@@ -38,6 +41,9 @@ class Test2(MiddlewareMixin):
         print(request.session.__dict__)
         print("request 2")
         # request.session = self.SessionStore(session_key)
+
+    def process_view(self, request, callback, callback_args, callback_kwargs):
+        print("process_view 2")
 
     def process_response(self, request, response):
         print("response 2")

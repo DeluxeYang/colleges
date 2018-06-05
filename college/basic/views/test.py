@@ -76,14 +76,8 @@ def batch(request):
 
 
 def test(request):
-    from backend.views import college
-    start = datetime.datetime.now()
-
-    colleges = College.objects.all()
-    res = format_colleges(colleges)
-    end = datetime.datetime.now()
-    print((end - start))
-    return HttpResponse(res)
+    print("test")
+    return HttpResponse("kongkongkong")
 
 
 def format_colleges(colleges):
